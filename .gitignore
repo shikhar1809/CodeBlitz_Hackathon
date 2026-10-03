@@ -1,0 +1,11 @@
+# Private planning notes (contain agent ids) and secrets
+PLAN/
+.el_key
+*.env
+.env*
+
+# Flutter
+app/build/
+app/.dart_tool/
+.idea/
+.vscode/
