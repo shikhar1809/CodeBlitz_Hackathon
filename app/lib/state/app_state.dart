@@ -39,7 +39,6 @@ class AppState extends ChangeNotifier {
 
   Settings settings = Settings();
   PinVault vault = PinVault();
-  bool locked = true;
   final List<LogEntry> log = [];
   final List<Recording> recordings = [];
   Session? session;
@@ -110,46 +109,8 @@ class AppState extends ChangeNotifier {
       ..guardians = guardians
       ..homeMode = homeMode
       ..onboarded = true;
-    locked = false;
     save();
     note('Winger set up for ${settings.name}');
-  }
-
-  // -------------------------------------------------------------- disguise
-
-  /// The wallpaper search box. Returns true when Winger should open.
-  bool tryUnlock(String entry) {
-    if (!settings.onboarded) {
-      // Demo build before set-up: the demo PIN opens onboarding.
-      if (isDemo && entry == Demo.pin) {
-        locked = false;
-        notifyListeners();
-        return true;
-      }
-      return false;
-    }
-    switch (vault.check(entry)) {
-      case PinResult.real:
-        locked = false;
-        notifyListeners();
-        return true;
-      case PinResult.duress:
-        if (session != null && session!.ladder.isAlerting) _duress();
-        return false;
-      default:
-        return false;
-    }
-  }
-
-  void lock() {
-    locked = true;
-    notifyListeners();
-  }
-
-  /// Long-press on a wallpaper: silent SOS. Nothing changes on screen.
-  Future<void> silentSos() async {
-    if (session == null) await _startSession(SessionKind.wingman, quiet: true);
-    await silentAlert('Silent SOS from the wallpaper screen');
   }
 
   // --------------------------------------------------------------- sessions

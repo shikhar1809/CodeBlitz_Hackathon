@@ -4,27 +4,25 @@
 
 Winger is a voice-first personal safety app for women (India first). It is built by **Team AfterBurners** for CodeBlitz (ElevenLabs track).
 
-It is proactive: Winger notices when something is wrong and asks, so she never has to find and press a button. It is disguised: on the phone it looks like a wallpaper app. It keeps working offline, because every safety path has an on-phone fallback.
+It is proactive: Winger notices when something is wrong and asks, so she never has to find and press a button. It keeps working offline, because every safety path has an on-phone fallback.
 
 > Winger helps you get help faster. It is not a guarantee of safety. In danger, call 112.
 
-**Live demo:** https://wingercodeblitz.web.app. It opens as "Wallpapers". Type `2580` in the search box and press Enter, then Continue → Continue → Finish. Allow the microphone to talk to Riya.
+**Live demo:** https://wingercodeblitz.web.app. Onboarding comes prefilled, so press Continue → Continue → Finish. Allow the microphone to talk to Riya. The demo PIN is `2580` and the duress PIN is `1379`.
 
 ---
 
-## The three-minute demo
+## The demo
 
-1. **The disguise.** The app opens as *Wallpapers*. Type the PIN (`2580` in the demo) in its search box and Winger appears. Long-pressing any wallpaper is a silent SOS.
-2. **Active duty.** Tap it and a phone call from "Riya" starts. It looks like the phone's own call screen. Riya is an **ElevenLabs Conversational AI** agent; with no network, an offline companion speaks instead.
-3. **Safe phrase.** Mid-call, say *"did you feed the cat"*. The call carries on as normal while guardians get a **silent SMS** with her location and a live tracking link.
-4. **Listening.** End the call and Winger goes silent but keeps listening. A scream or "help me" makes it ask **"Are you okay?"**. With no answer it climbs the ladder: **Nudge → Ask → Guardian → 112**.
-5. **False alarm.** On the call, open Keypad and dial the PIN, then `#`. Everything stops and guardians are told she is safe. The **duress PIN** (`1379`) looks identical but keeps alerting in secret.
+1. **Active duty.** Tap it and a phone call from "Riya" starts. It looks like the phone's own call screen. Riya is an **ElevenLabs Conversational AI** agent; with no network, an offline companion speaks instead.
+2. **Safe phrase.** Mid-call, say *"did you feed the cat"*. The call carries on as normal while guardians get a **silent SMS** with her location and a live tracking link.
+3. **Listening.** End the call and Winger goes silent but keeps listening. A scream or "help me" makes it ask **"Are you okay?"**. With no answer it climbs the ladder: **Nudge → Ask → Guardian → 112**.
+4. **False alarm.** On the call, open Keypad and dial the PIN, then `#`. Everything stops and guardians are told she is safe. The **duress PIN** (`1379`) looks identical but keeps alerting in secret.
 
 ## Features
 
 | | |
 |---|---|
-| **Wallpaper disguise** | 14 wallpapers drawn in code. The launcher, web title and recent-apps title all say "Wallpapers". |
 | **Wingman call** | A Google-Phone-style dialler with a live ElevenLabs voice agent. The agent has `silent_alert` and `alert_guardians` tools. Hold Mute for a silent alert. Keypad, then PIN + `#`, cancels. |
 | **Escalation ladder** | Nudge (vibrate), then Ask (full-screen check-in), then Guardian (SMS to all, call the first), then a 112 countdown. |
 | **Threat judge** | Heard sounds and phrases feed a fading risk score (20 s half-life). Score ≥ 0.6 asks; ≥ 1.6 alerts. |
@@ -95,7 +93,7 @@ Optional SMS from the dead-man switch: set `TWILIO_SID`, `TWILIO_TOKEN` and `TWI
 
 ## Tests
 
-`flutter test` runs 28 tests. The core engine is covered (ladder, PINs, tamper-evident evidence chain, journey corridor, threat score, companion turn-taking), along with every step of the demo path as a flow test and the Help chat guides.
+`flutter test` runs 27 tests. The core engine is covered (ladder, PINs, tamper-evident evidence chain, journey corridor, threat score, companion turn-taking), along with every step of the demo path as a flow test and the Help chat guides.
 
 ## Honest limits
 

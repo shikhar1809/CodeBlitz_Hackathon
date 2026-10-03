@@ -8,8 +8,6 @@ class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
 
   static const _cards = [
-    (WIcons.gallery, W.indigo, 'It looks like a wallpaper app',
-        'Winger opens as "Wallpapers". Type your PIN in the search box to open it. Long-press any wallpaper for a silent SOS.'),
     (WIcons.shield, W.marigold, 'Active duty',
         'Tap it when you feel unsafe. A friend calls you and Winger starts watching: location, recording, check-ins.'),
     (WIcons.call, W.leaf, 'The call',

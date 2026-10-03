@@ -7,7 +7,6 @@ import 'ui/home_screen.dart';
 import 'ui/onboarding_screen.dart';
 import 'ui/profile_screen.dart';
 import 'ui/theme.dart';
-import 'ui/wallpaper_screen.dart';
 import 'ui/widgets.dart';
 
 class WingerApp extends StatelessWidget {
@@ -18,7 +17,7 @@ class WingerApp extends StatelessWidget {
   Widget build(BuildContext context) => AppScope(
         state: state,
         child: MaterialApp(
-          title: 'Wallpapers',
+          title: 'Winger',
           debugShowCheckedModeBanner: false,
           theme: W.theme(),
           builder: (context, child) => PortraitFrame(child: child!),
@@ -27,14 +26,13 @@ class WingerApp extends StatelessWidget {
       );
 }
 
-/// Locked: the wallpaper disguise. Not set up: onboarding. Otherwise Winger.
+/// Not set up: onboarding. Otherwise Winger.
 class RootGate extends StatelessWidget {
   const RootGate({super.key});
 
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
-    if (app.locked) return const WallpaperScreen();
     if (!app.settings.onboarded) return const OnboardingScreen();
     return const _Shell();
   }

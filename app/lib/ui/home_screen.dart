@@ -15,7 +15,6 @@ const _tips = [
   (WIcons.mic, "In danger, can't say so", 'Say your safe phrase on the call. Your guardians are alerted silently.'),
   (WIcons.keypad, 'False alarm', 'On the call, open Keypad, dial your PIN, then #. Everyone is told you are safe.'),
   (WIcons.call, 'End the call', 'Winger goes silent and keeps listening. A scream makes it ask if you are okay.'),
-  (WIcons.eye, 'Hide Winger', 'Tap the lock. Winger becomes a wallpaper app until you type your PIN in its search box.'),
 ];
 
 class HomeScreen extends StatelessWidget {
@@ -95,16 +94,6 @@ class HomeScreen extends StatelessWidget {
                         style: const TextStyle(color: W.text, fontWeight: FontWeight.w700)),
                   ),
                 ),
-              Material(
-                color: Colors.white,
-                shape: const CircleBorder(),
-                elevation: 0,
-                child: IconButton(
-                  tooltip: 'Hide Winger',
-                  onPressed: app.lock,
-                  icon: const Icon(WIcons.lock, color: W.text),
-                ),
-              ),
             ]),
             const SizedBox(height: 18),
             const Expanded(flex: 5, child: _TipsCard()),

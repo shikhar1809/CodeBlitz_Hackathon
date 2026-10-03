@@ -21,7 +21,6 @@ AppState newApp() {
     duress: '1379',
     homeMode: false,
   );
-  app.lock();
   return app;
 }
 
@@ -30,17 +29,6 @@ bool sms(AppState app, String text) =>
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  group('Disguise', () {
-    test('only the real PIN opens Winger', () {
-      final app = newApp();
-      expect(app.tryUnlock('1111'), isFalse);
-      expect(app.tryUnlock('1379'), isFalse);
-      expect(app.locked, isTrue);
-      expect(app.tryUnlock('2580'), isTrue);
-      expect(app.locked, isFalse);
-    });
-  });
 
   group('Wingman', () {
     test('safe phrase alerts silently and the call carries on', () async {
