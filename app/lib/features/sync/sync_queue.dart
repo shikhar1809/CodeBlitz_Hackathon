@@ -90,7 +90,7 @@ class SyncQueue {
 
   final SharedPreferences _prefs;
 
-  static const _key = 'rapidrx.sync.queue';
+  static const _key = 'winger.sync.queue';
 
   static Future<SyncQueue> load() async =>
       SyncQueue(await SharedPreferences.getInstance());

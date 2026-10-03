@@ -83,14 +83,9 @@ def main():
     save(mark(64), "site/favicon.png")
     save(mark(180), "site/apple-touch-icon.png")
 
-    # Hub desktop app.
-    ico = ROOT / "hub/windows/runner/resources/app_icon.ico"
-    mark(256).save(ico, sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
-    print("wrote", ico.relative_to(ROOT))
-    save(mark(512), "hub/assets/brand/mark.png")
-    mac = "hub/macos/Runner/Assets.xcassets/AppIcon.appiconset"
-    for px in (16, 32, 64, 128, 256, 512, 1024):
-        save(mark(px), f"{mac}/app_icon_{px}.png")
+    # In-app logo.
+    save(mark(512), "app/assets/images/logo_mark.png")
+    save(mark(512), "app/assets/images/logo.png")
 
 
 if __name__ == "__main__":

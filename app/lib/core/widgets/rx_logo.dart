@@ -13,7 +13,7 @@ class RxLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'RapidRX',
+      label: 'Winger',
       image: true,
       child: Image.asset(
         asset,
@@ -75,7 +75,7 @@ class RxWordmark extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('RapidRX', style: text.titleLarge?.copyWith(height: 1.1)),
+            Text('Winger', style: text.titleLarge?.copyWith(height: 1.1)),
             if (tagline != null)
               Text(
                 tagline!,

@@ -86,7 +86,7 @@ class AppPrefs {
   bool checkPin(String pin) => _prefs.getString(_pinHash) == hashPin(pin);
 
   static String hashPin(String pin) =>
-      sha256.convert(utf8.encode('rapidrx:$pin')).toString();
+      sha256.convert(utf8.encode('winger:$pin')).toString();
 
   // ── Health profile (patients only) ──────────────────────────────────────
   static const _age = 'health_age';

@@ -24,7 +24,7 @@ void main() {
     await tester.pump();
   }
 
-  Widget app(AppPrefs p, {bool resume = true}) => RapidRxApp(
+  Widget app(AppPrefs p, {bool resume = true}) => WingerApp(
     prefs: p,
     showSplash: false,
     stageDelay: const Duration(milliseconds: 10),
@@ -109,7 +109,7 @@ void main() {
       expect(find.text('Your caretaker QR code'), findsOneWidget);
       expect(
         find.text(
-          'Ask the patient to open RapidRX and tap "Scan caretaker QR".',
+          'Ask the patient to open Winger and tap "Scan caretaker QR".',
         ),
         findsOneWidget,
       );
@@ -216,7 +216,7 @@ void main() {
       await resumeAt(
         t,
         {...base}..remove('pin_hash'),
-        'You will use it to open RapidRX. Choose something you will remember.',
+        'You will use it to open Winger. Choose something you will remember.',
       );
     });
 

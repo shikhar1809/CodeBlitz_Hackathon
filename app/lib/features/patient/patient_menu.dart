@@ -103,15 +103,17 @@ class PatientMenu extends StatelessWidget {
               builder: (context, constraints) {
                 // All tiles must fit without scrolling. Below this height
                 // they would squash their text, so scroll instead.
-                const minTile = 132.0;
+                // Two tiles a row: big targets, and room for more tiles
+                // without scrolling.
+                const minTile = 176.0;
                 const header = 56.0;
                 // The demo link sits below the tiles, and must not push them
                 // off the screen.
                 final footer = demoTools ? _DemoLink.height : 0.0;
-                final n = tiles.length;
+                final rows = (tiles.length / 2).ceil();
                 final fits =
-                    (constraints.maxHeight - header - footer - 16 * (n - 1)) /
-                        n >=
+                    (constraints.maxHeight - header - footer - 16 * (rows - 1)) /
+                        rows >=
                     minTile;
                 final heading = Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -144,9 +146,22 @@ class PatientMenu extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     heading,
-                    for (var i = 0; i < tiles.length; i++) ...[
-                      if (i > 0) const SizedBox(height: 16),
-                      Expanded(child: tiles[i]),
+                    for (var r = 0; r < rows; r++) ...[
+                      if (r > 0) const SizedBox(height: 16),
+                      Expanded(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(child: tiles[r * 2]),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: r * 2 + 1 < tiles.length
+                                  ? tiles[r * 2 + 1]
+                                  : const SizedBox.shrink(),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                     if (demoTools) const _DemoLink(),
                   ],
@@ -378,10 +393,10 @@ class _MenuTile extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       onTap: onTap,
-      iconSize: 60,
+      iconSize: 56,
       titleStyle: Theme.of(context).textTheme.titleLarge
-          ?.copyWith(fontSize: 24, height: 1.2),
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+          ?.copyWith(fontSize: 22, height: 1.2),
+      padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
       alignTop: true,
       minHeight: AppTheme.tapTarget,
     );

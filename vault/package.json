@@ -1,0 +1,14 @@
+{
+  "name": "winger-vault",
+  "version": "1.0.0",
+  "description": "Winger Home Vault: the family's medicine records, end-to-end encrypted, kept at home.",
+  "private": true,
+  "license": "Apache-2.0",
+  "bin": { "winger-vault": "bin/vault.js" },
+  "main": "src/server.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node bin/vault.js start",
+    "test": "node --test test/vault.test.js"
+  }
+}

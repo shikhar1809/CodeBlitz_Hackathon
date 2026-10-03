@@ -186,7 +186,7 @@ void main() {
       );
     });
 
-    test('not a RapidRX code at all', () {
+    test('not a Winger code at all', () {
       for (final junk in ['', 'hello', 'https://example.com', 'RXC1..x']) {
         expect(
           PairingCode.decode(junk, now: now).error,

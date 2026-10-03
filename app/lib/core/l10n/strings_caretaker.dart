@@ -33,8 +33,8 @@ extension CaretakerStrings on AppStrings {
   String get pairingQrTitle =>
       pick('Your caretaker QR code', 'आपका देखभालकर्ता QR कोड');
   String get pairingQrWhy => pick(
-    'Ask the patient to open RapidRX and tap "Scan caretaker QR".',
-    'मरीज़ से कहें: RapidRX खोलें, फिर "देखभालकर्ता का QR स्कैन करें" दबाएँ।',
+    'Ask the patient to open Winger and tap "Scan caretaker QR".',
+    'मरीज़ से कहें: Winger खोलें, फिर "देखभालकर्ता का QR स्कैन करें" दबाएँ।',
   );
   String pairingValidFor(int minutes) => pick(
     minutes == 1
@@ -109,9 +109,9 @@ extension CaretakerStrings on AppStrings {
     'यह डिवाइस स्कैन नहीं कर सकता। देखभालकर्ता का भेजा कोड लिखें या पेस्ट करें।',
   );
   String get cameraDenied => pick(
-    'RapidRX is not allowed to use the camera. Allow it in Settings, then '
+    'Winger is not allowed to use the camera. Allow it in Settings, then '
         'try again — or type the code below.',
-    'RapidRX को कैमरा इस्तेमाल करने की अनुमति नहीं है। सेटिंग में अनुमति दें, '
+    'Winger को कैमरा इस्तेमाल करने की अनुमति नहीं है। सेटिंग में अनुमति दें, '
         'फिर दोबारा कोशिश करें — या नीचे कोड लिखें।',
   );
   String get cameraFailed => pick(
@@ -123,13 +123,13 @@ extension CaretakerStrings on AppStrings {
   String get codeFieldHint => pick('Paste the code here', 'कोड यहाँ पेस्ट करें');
   String get checkCode => pick('Check code', 'कोड जाँचें');
   String get codeMalformed => pick(
-    'This is not a RapidRX caretaker code.',
-    'यह RapidRX देखभालकर्ता का कोड नहीं है।',
+    'This is not a Winger caretaker code.',
+    'यह Winger देखभालकर्ता का कोड नहीं है।',
   );
   String get codeVersion => pick(
-    'This code is from a different version of RapidRX. Update the app on '
+    'This code is from a different version of Winger. Update the app on '
         'both phones.',
-    'यह कोड RapidRX के दूसरे संस्करण का है। दोनों फ़ोन में ऐप अपडेट करें।',
+    'यह कोड Winger के दूसरे संस्करण का है। दोनों फ़ोन में ऐप अपडेट करें।',
   );
   String get codeChecksum => pick(
     'Part of this code is wrong. Scan it again, or check each letter.',
@@ -182,9 +182,9 @@ extension CaretakerStrings on AppStrings {
   String get sendCodeWhatsApp =>
       pick('Send the code on WhatsApp', 'कोड WhatsApp पर भेजें');
   String pairingWhatsApp(String patient, String code) => pick(
-    'RapidRX: $patient linked you as their caretaker. Enter this code on '
+    'Winger: $patient linked you as their caretaker. Enter this code on '
         'your phone: $code',
-    'RapidRX: $patient ने आपको देखभालकर्ता के रूप में जोड़ा है। अपने फ़ोन '
+    'Winger: $patient ने आपको देखभालकर्ता के रूप में जोड़ा है। अपने फ़ोन '
         'में यह कोड डालें: $code',
   );
 

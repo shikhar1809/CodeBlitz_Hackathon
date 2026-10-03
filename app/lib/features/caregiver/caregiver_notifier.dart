@@ -33,7 +33,7 @@ class CaregiverNotifier {
   final String? caregiverPhone;
   final AppStrings strings;
 
-  static const _sentKey = 'rapidrx.alerts.sent';
+  static const _sentKey = 'winger.alerts.sent';
 
   /// Enough to cover two days of four slots, with room.
   static const remember = 60;

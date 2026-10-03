@@ -41,7 +41,7 @@ class AlertOutbox {
 
   final SharedPreferences _prefs;
 
-  static const _key = 'rapidrx.alerts.outbox';
+  static const _key = 'winger.alerts.outbox';
 
   /// An alert this old is news nobody needs any more.
   static const maxAge = Duration(days: 2);

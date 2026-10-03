@@ -53,8 +53,8 @@ enum _Stage {
   ready,
 }
 
-class RapidRxApp extends StatefulWidget {
-  const RapidRxApp({
+class WingerApp extends StatefulWidget {
+  const WingerApp({
     super.key,
     required this.prefs,
     this.stageDelay = const Duration(seconds: 3),
@@ -91,10 +91,10 @@ class RapidRxApp extends StatefulWidget {
   final bool enableSync;
 
   @override
-  State<RapidRxApp> createState() => _RapidRxAppState();
+  State<WingerApp> createState() => _WingerAppState();
 }
 
-class _RapidRxAppState extends State<RapidRxApp> {
+class _WingerAppState extends State<WingerApp> {
   late final AppState _state = AppState(widget.prefs)..addListener(_syncVoice);
   late final VoiceGuide _voice = widget.voice ?? VoiceGuide();
   final _navigator = GlobalKey<NavigatorState>();
@@ -201,7 +201,7 @@ class _RapidRxAppState extends State<RapidRxApp> {
       child: ListenableBuilder(
         listenable: _state,
         builder: (context, _) => MaterialApp(
-          title: 'RapidRX',
+          title: 'Winger',
           navigatorKey: _navigator,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(),

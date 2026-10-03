@@ -1,5 +1,5 @@
 <#
-  Run or build RapidRX with the local keys passed as --dart-define.
+  Run or build Winger with the local keys passed as --dart-define.
 
     .\tools\run.ps1                    flutter run on the default device
     .\tools\run.ps1 -Device chrome     flutter run in Chrome

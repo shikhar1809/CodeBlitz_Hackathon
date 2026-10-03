@@ -11,5 +11,5 @@ Future<void> main() async {
   // here and nowhere else, so goldens (which run in debug mode) never show it.
   if (kDebugMode) VoiceGuide.showDebugStatus = true;
   final prefs = await AppPrefs.load();
-  runApp(RapidRxApp(prefs: prefs));
+  runApp(WingerApp(prefs: prefs));
 }

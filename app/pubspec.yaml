@@ -1,5 +1,5 @@
 name: winger
-description: "RapidRX — four sources that cross-question each other, so nobody guesses a dose."
+description: "Winger — four sources that cross-question each other, so nobody guesses a dose."
 publish_to: 'none'
 version: 1.0.0+1
 

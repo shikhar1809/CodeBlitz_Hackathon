@@ -198,7 +198,7 @@ void main() {
       expect(find.text('Enter a 10-digit mobile number'), findsOneWidget);
     });
 
-    testWidgets('the menu shows all three tiles without scrolling', (
+    testWidgets('the menu shows every tile without scrolling', (
       tester,
     ) async {
       usePhoneSurface(tester);
@@ -210,6 +210,7 @@ void main() {
         'New prescription',
         'My prescriptions',
         'Medicine schedule',
+        'Scan caretaker QR',
       ]) {
         final box = tester.getRect(find.text(label));
         expect(box.bottom, lessThan(phoneSize.height), reason: label);

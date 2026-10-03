@@ -59,5 +59,5 @@ http
     });
   })
   .listen(port, () => {
-    console.log(`RapidRX web build at http://localhost:${port}  (serving ${root})`);
+    console.log(`Winger web build at http://localhost:${port}  (serving ${root})`);
   });

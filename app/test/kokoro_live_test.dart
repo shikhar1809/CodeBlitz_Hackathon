@@ -9,10 +9,10 @@ import 'package:winger/core/voice/voice_cache.dart';
 /// Against the real Hugging Face Space. Off by default: it needs the network,
 /// and a sleeping Space takes half a minute.
 ///
-///     $env:RAPIDRX_LIVE_KOKORO = '1'; flutter test test/kokoro_live_test.dart
+///     $env:WINGER_LIVE_KOKORO = '1'; flutter test test/kokoro_live_test.dart
 void main() {
-  final live = Platform.environment['RAPIDRX_LIVE_KOKORO'] == '1';
-  final skip = live ? false : 'set RAPIDRX_LIVE_KOKORO=1 to call the Space';
+  final live = Platform.environment['WINGER_LIVE_KOKORO'] == '1';
+  final skip = live ? false : 'set WINGER_LIVE_KOKORO=1 to call the Space';
 
   // The test binding answers every HTTP request with a 400. This test is the
   // one place that wants the real network.

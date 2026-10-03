@@ -46,7 +46,7 @@ class PairingPayload {
 
 /// Why a code was refused. Each has its own plain message on the screen.
 enum PairingError {
-  /// Not a RapidRX code at all, or a piece is missing.
+  /// Not a Winger code at all, or a piece is missing.
   malformed,
 
   /// Made by a newer (or older) app than this one understands.
@@ -167,7 +167,7 @@ abstract final class PairingCode {
   /// no network.
   static String confirmationCode(String caretakerId) {
     final hex = sha256
-        .convert(utf8.encode('rapidrx:pair-confirm:$caretakerId'))
+        .convert(utf8.encode('winger:pair-confirm:$caretakerId'))
         .toString();
     final n = int.parse(hex.substring(0, 8), radix: 16) % 10000;
     return n.toString().padLeft(4, '0');

@@ -24,7 +24,7 @@ class AppStrings {
   String pick(String en, String hi) => _t(en, hi);
 
   // ── Brand ────────────────────────────────────────────────────────────────
-  String get appName => 'RapidRX';
+  String get appName => 'Winger';
   String get tagline => _t('Every dose, on time', 'हर दवाई, सही समय');
 
   // ── Language (the one screen that is bilingual at once) ─────────────────
@@ -40,9 +40,9 @@ class AppStrings {
   String get voiceQuestion =>
       _t('Do you need voice help?', 'क्या आपको आवाज़ में मदद चाहिए?');
   String get voiceWhy => _t(
-    'RapidRX will read each screen aloud, and repeat it every little while. '
+    'Winger will read each screen aloud, and repeat it every little while. '
         'It works without internet too.',
-    'RapidRX हर स्क्रीन पढ़कर सुनाएगा, और थोड़ी-थोड़ी देर में दोहराएगा। '
+    'Winger हर स्क्रीन पढ़कर सुनाएगा, और थोड़ी-थोड़ी देर में दोहराएगा। '
         'यह बिना इंटरनेट के भी काम करता है।',
   );
   String get yes => _t('Yes', 'हाँ');
@@ -84,8 +84,8 @@ class AppStrings {
   // ── PIN ─────────────────────────────────────────────────────────────────
   String get pinTitle => _t('Set a 4-digit PIN', '4 अंकों का PIN बनाएँ');
   String get pinWhy => _t(
-    'You will use it to open RapidRX. Choose something you will remember.',
-    'इससे आप RapidRX खोलेंगे। ऐसा चुनें जो आपको याद रहे।',
+    'You will use it to open Winger. Choose something you will remember.',
+    'इससे आप Winger खोलेंगे। ऐसा चुनें जो आपको याद रहे।',
   );
   String get pinConfirmTitle => _t('Enter the PIN again', 'PIN फिर से लिखें');
   String get pinConfirmWhy =>
@@ -299,9 +299,9 @@ class AppStrings {
   // ── Step 3: photos ──────────────────────────────────────────────────────
   String get photosTitle => _t('Photos', 'फ़ोटो');
   String get photosWhy => _t(
-    'The prescription, the bill, and the strips. RapidRX reads each one on '
+    'The prescription, the bill, and the strips. Winger reads each one on '
         'this phone and labels it - check the labels before continuing.',
-    'पर्ची, बिल और दवाई के पत्ते। RapidRX हर फ़ोटो को इसी फ़ोन पर पढ़कर '
+    'पर्ची, बिल और दवाई के पत्ते। Winger हर फ़ोटो को इसी फ़ोन पर पढ़कर '
         'पहचानता है - आगे बढ़ने से पहले पहचान जाँच लें।',
   );
   String get findRecent => _t('Find recent photos', 'हाल की फ़ोटो ढूँढें');
@@ -333,8 +333,8 @@ class AppStrings {
         'इस्तेमाल करें।',
   );
   String get scanDenied => _t(
-    'RapidRX was not allowed to look at your photos. Use Camera or Gallery.',
-    'RapidRX को फ़ोटो देखने की अनुमति नहीं मिली। कैमरा या गैलरी इस्तेमाल करें।',
+    'Winger was not allowed to look at your photos. Use Camera or Gallery.',
+    'Winger को फ़ोटो देखने की अनुमति नहीं मिली। कैमरा या गैलरी इस्तेमाल करें।',
   );
   String get scanNothing => _t(
     'No recent photos looked like a prescription or bill.',
@@ -480,9 +480,9 @@ class AppStrings {
     'याद दिलाना सिर्फ़ Android ऐप में काम करता है।',
   );
   String get remindersOff => _t(
-    'Reminders are turned off for RapidRX. Turn on notifications so the '
+    'Reminders are turned off for Winger. Turn on notifications so the '
         'phone can ring when a dose is due.',
-    'RapidRX के लिए याद दिलाना बंद है। नोटिफ़िकेशन चालू करें ताकि दवाई के '
+    'Winger के लिए याद दिलाना बंद है। नोटिफ़िकेशन चालू करें ताकि दवाई के '
         'समय फ़ोन बज सके।',
   );
   String get share => _t('Share', 'शेयर करें');
@@ -560,9 +560,9 @@ class AppStrings {
   String statusHeader(String name) =>
       _t('Medicines today — $name', 'आज की दवाई — $name');
   String get messageFooter => _t(
-    'Sent from RapidRX. Every row was checked by a person. This is not '
+    'Sent from Winger. Every row was checked by a person. This is not '
         'medical advice.',
-    'RapidRX से भेजा गया। हर पंक्ति किसी व्यक्ति ने जाँची है। यह डॉक्टरी '
+    'Winger से भेजा गया। हर पंक्ति किसी व्यक्ति ने जाँची है। यह डॉक्टरी '
         'सलाह नहीं है।',
   );
   String get inTheMorning => _t('in the morning', 'सुबह');
