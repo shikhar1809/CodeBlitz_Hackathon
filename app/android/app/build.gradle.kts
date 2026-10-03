@@ -12,28 +12,28 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // flutter_local_notifications uses java.time on every API level.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.afterburners.winger"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // The ML Kit floor, and roughly 97% of the Android phones in use in India.
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
-        // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
-        // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
-        // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
-        // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Debug-signed so `flutter build apk --release` installs on a demo phone.
+            // A store build gets its own signing config.
             signingConfig = signingConfigs.getByName("debug")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }
@@ -42,6 +42,14 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // The ML Kit plugin only compiles against the non-Latin scripts; the app
+    // has to ship the ones it uses. Without this, reading a Hindi note on a
+    // prescription crashes on the phone — and only a release build (R8) says so.
+    implementation("com.google.mlkit:text-recognition-devanagari:16.0.1")
 }
 
 flutter {

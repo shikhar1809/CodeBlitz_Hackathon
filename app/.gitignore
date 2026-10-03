@@ -46,3 +46,13 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Golden comparator dumps — never commit these
+test/failures/
+
+# Local agent worktrees
+.claude/
+
+# Secrets — the repository is public, no key is ever committed
+tools/keys.local.ps1
+tools/keys.local.sh

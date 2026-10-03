@@ -1,1 +1,0 @@
-{"id":"spam","version":1,"name":"X","watch":"scheduled","priority":"routine","checkIn":"notification_actions","ladder":[{"id":"a","after":"soon","actions":["notify"]}]}

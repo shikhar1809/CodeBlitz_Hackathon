@@ -1,11 +1,11 @@
 {
-    "name": "Winger",
-    "short_name": "Winger",
+    "name": "RapidRX",
+    "short_name": "RapidRX",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFDF5",
+    "theme_color": "#F6B20A",
+    "description": "Every dose, on time. Four sources that cross-question each other, so nobody guesses a dose.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
