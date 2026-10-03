@@ -267,6 +267,13 @@ class AppState extends ChangeNotifier {
     return callWingman();
   }
 
+  /// Start watching with no call (deterrent, followed).
+  Future<void> startQuiet(SessionKind kind) async {
+    session ??= await _startSession(kind);
+    session!.listenOnly = true;
+    notifyListeners();
+  }
+
   Future<WingmanCall> callWingman() async {
     final s = session!;
     s.listenOnly = false;

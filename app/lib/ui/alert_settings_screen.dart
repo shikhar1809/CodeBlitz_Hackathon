@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../state/app_state.dart';
+import 'deterrent_screen.dart';
+import 'fake_call_screen.dart';
 import 'phrases_screen.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -44,10 +46,12 @@ class AlertSettingsScreen extends StatelessWidget {
           title: const Text('More tools', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
           children: [
             row(WIcons.call, W.leaf, 'Fake call', 'A call from "Mom" to get you out of a situation',
-                onTap: () => _soon(context, 'Fake call')),
+                onTap: () =>
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FakeCallScreen()))),
             if (!app.settings.homeMode)
               row(WIcons.speaker, W.sos, 'Deterrent', 'Loud "recording started, police informed"',
-                  onTap: () => _soon(context, 'Deterrent')),
+                  onTap: () =>
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DeterrentScreen()))),
             row(WIcons.walk, W.coral, 'Followed', 'Record now, check in every 2 minutes',
                 onTap: () => _soon(context, 'Followed')),
             row(WIcons.activity, W.indigo, 'Stalked', 'Dated incident log and PDF report',
