@@ -8,6 +8,8 @@ It is proactive: Winger notices when something is wrong and asks, so she never h
 
 > Winger helps you get help faster. It is not a guarantee of safety. In danger, call 112.
 
+**Live demo:** https://wingercodeblitz.web.app. It opens as "Wallpapers". Type `2580` in the search box and press Enter, then Continue → Continue → Finish. Allow the microphone to talk to Riya.
+
 ---
 
 ## The three-minute demo
