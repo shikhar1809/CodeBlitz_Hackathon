@@ -4,6 +4,7 @@ import 'package:winger/core/help_guide.dart';
 import 'package:winger/core/ladder.dart';
 import 'package:winger/core/phrase_match.dart';
 import 'package:winger/services/alert_service.dart';
+import 'package:winger/services/cloud_service.dart';
 import 'package:winger/services/ear.dart';
 import 'package:winger/state/app_state.dart';
 import 'package:winger/ui/phone_call_view.dart';
@@ -11,7 +12,7 @@ import 'package:winger/ui/phone_call_view.dart';
 import 'dart:io';
 
 AppState newApp() {
-  final app = AppState(alerts: AlertService(simulate: true), persist: false);
+  final app = AppState(alerts: AlertService(simulate: true), cloud: CloudService(enabled: false), persist: false);
   app.finishOnboarding(
     name: 'Asha',
     lang: 'en',

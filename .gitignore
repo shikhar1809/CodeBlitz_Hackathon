@@ -9,3 +9,8 @@ app/build/
 app/.dart_tool/
 .idea/
 .vscode/
+
+# Firebase
+backend/functions/node_modules/
+.firebase/
+firebase-debug.log

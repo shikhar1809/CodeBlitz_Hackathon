@@ -14,6 +14,7 @@ import '../core/ladder.dart';
 import '../core/pin_vault.dart';
 import '../core/threat_judge.dart';
 import '../services/alert_service.dart';
+import '../services/cloud_service.dart';
 import '../services/ear.dart';
 import '../services/voice_service.dart';
 import '../ui/theme.dart';
@@ -24,12 +25,14 @@ export 'models.dart';
 
 /// Every action the UI can take, wired to the core engine and services.
 class AppState extends ChangeNotifier {
-  AppState({AlertService? alerts, VoiceService? voice, Ear? ear, this.persist = true})
+  AppState({AlertService? alerts, VoiceService? voice, Ear? ear, CloudService? cloud, this.persist = true})
       : alerts = alerts ?? AlertService(),
+        cloud = cloud ?? CloudService(),
         voice = voice ?? VoiceService(),
         ear = ear ?? Ear();
 
   final AlertService alerts;
+  final CloudService cloud;
   final VoiceService voice;
   final Ear ear;
   final bool persist;
@@ -164,6 +167,17 @@ class AppState extends ChangeNotifier {
     return W.watching;
   }
 
+  /// Status as the guardian's tracking page shows it.
+  String get cloudStatus {
+    final c = statusColor;
+    if (c == W.silentHelp) return 'silent';
+    if (c == W.alerting) return 'alerting';
+    if (c == W.checking) return 'checking';
+    return 'watching';
+  }
+
+  String get _trackSuffix => cloud.trackUrl == null ? '' : ' Live: ${cloud.trackUrl}';
+
   String get headline {
     final s = session;
     if (s == null) return 'Hi ${settings.name.isEmpty ? 'there' : settings.name}';
@@ -230,11 +244,16 @@ class AppState extends ChangeNotifier {
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => tick());
     note('Blackbox recording (GPS only, no mic)');
+    final link = await cloud.start(
+        name: settings.name, kind: kind.name, guardians: settings.guardians.map((g) => g.phone).toList());
+    if (session != s) return s;
+    if (link != null) note('Live tracking link ready');
     if (!quiet) {
       final mins = _checkInEvery.inMinutes;
       note('$title on for ${mins == 0 ? '${_checkInEvery.inSeconds} seconds' : '$mins minutes'}');
       await _smsAll('Winger: ${settings.name} turned on $title. '
-          "You'll hear from Winger only if something looks wrong.");
+          "You'll hear from Winger only if something looks wrong."
+          '${link == null ? '' : ' Live: $link'}');
     }
     await _blackbox(s);
     _startEar();
@@ -327,6 +346,7 @@ class AppState extends ChangeNotifier {
     }
     call?.tick(t);
     if (++_blackboxTick % 5 == 0) _blackbox(s);
+    if (_blackboxTick % 15 == 0) cloud.beat(at: s.location, status: cloudStatus);
     notifyListeners();
   }
 
@@ -464,7 +484,8 @@ class AppState extends ChangeNotifier {
     if (s == null) return;
     s.guardiansAlerted = settings.guardians.length;
     await _smsAll('Winger ALERT: ${settings.name} may need help ($reason). '
-        'Location: ${_mapLink(s.location)}. Please call her now.');
+        'Location: ${_mapLink(s.location)}.$_trackSuffix Please call her now.');
+    cloud.beat(at: s.location, status: 'alerting', note: reason);
     if (settings.guardians.isNotEmpty && !settings.homeMode) {
       final g = settings.guardians.first;
       final real = await alerts.call(g.phone);
@@ -481,7 +502,10 @@ class AppState extends ChangeNotifier {
     s.guardiansAlerted = settings.guardians.length;
     await _smsAll('Winger SILENT ALERT: ${settings.name} signalled she needs help '
         "($reason) but can't talk. Location: ${_mapLink(s.location)}. "
-        'Do not call her; call 112 or go to her.');
+        'Do not call her; call 112 or go to her.$_trackSuffix');
+    // The guardian page shows silent help; the reason stays off it so a
+    // forced cancel is never revealed to whoever is watching her phone.
+    cloud.beat(at: s.location, status: 'silent');
     notifyListeners();
   }
 
@@ -566,6 +590,7 @@ class AppState extends ChangeNotifier {
     await ear.stop();
     await voice.stop();
     note('Session ended: $reason');
+    cloud.end(reason == 'She is safe' ? 'safe' : reason == 'Arrived' ? 'arrived' : 'ended');
     notifyListeners();
   }
 
