@@ -74,3 +74,12 @@ The Vault prints the family-portal address for this computer and for your home W
 | Integrity | events are append-only and hash-chained; `vault verify` detects edits |
 | Abuse | 10 wrong tries a minute → 429; 256 KB body cap; strict security headers |
 | Ownership | the patient can erase their household at any time; encrypted single-file backups |
+
+## Demo clinic
+
+`site/clinic/index.html` is served at [`/clinic/`](https://wingercodeblitz.web.app/clinic/). It is **Winger Demo Clinic**, a fictional appointment-booking site and the target for demoing Winger's local browser agent ("book a doctor's appointment for grandma"). It is not a real clinic: doctors are invented, no appointment is made and no SMS is sent.
+
+- One page, four steps: department and doctor → date and time → patient details with OTP → review and **Confirm booking**, then a confirmation with a `WDC-XXXXXX` booking ID. "My bookings" lists and cancels bookings.
+- The demo OTP is always **246810**.
+- Built for agents: every control has a visible label and stable `id`/`name`, errors appear as text beside the field, and the page title names the current step. Only the final button is called "Confirm booking", so the agent's safety gate can stop there.
+- Nothing leaves the browser: bookings live in `localStorage`, and the only network requests are for Google Fonts.
