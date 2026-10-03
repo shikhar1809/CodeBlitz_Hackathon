@@ -78,7 +78,7 @@ class _PhoneCallViewState extends State<PhoneCallView> {
           Expanded(
             child: Center(
               child: _keypad
-                  ? _dialPad()
+                  ? FittedBox(fit: BoxFit.scaleDown, child: _dialPad())
                   : CircleAvatar(
                       radius: 90,
                       backgroundColor: const Color(0xFF5D7B98),

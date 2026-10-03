@@ -116,7 +116,8 @@ class WingmanCall extends ChangeNotifier {
         (_herLastWords == null || _herLastWords!.isBefore(spoke))) {
       // Her whole turn passed in silence.
       _say(script.next(now, herTurnEnded: true, heardHer: false));
-      if (script.wantsCheckIn && app.session?.ladder.rung == Rung.idle) {
+      // Silence only means something when the microphone can hear her.
+      if (app.ear.available && script.wantsCheckIn && app.session?.ladder.rung == Rung.idle) {
         app.session!.ladder.raise(now, to: Rung.nudge);
       }
     } else {
