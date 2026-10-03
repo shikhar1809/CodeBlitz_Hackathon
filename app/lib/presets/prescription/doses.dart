@@ -126,6 +126,21 @@ class Doses {
 
   int get heldCount => _held.length;
 
+  void reset() {
+    _book = null;
+    _held.clear();
+  }
+
+  /// One line for the Home header.
+  String get statusLine {
+    final now = app.now();
+    final waiting = book.today(now).where((o) => o.needsAnswer(now)).length;
+    if (waiting > 0) return waiting == 1 ? 'A dose is waiting for you.' : '$waiting doses are waiting.';
+    final next = book.nextDue(now);
+    if (next == null) return 'No medicines scheduled.';
+    return 'Next dose at ${DayTime(next.hour, next.minute).label}.';
+  }
+
   /// Doses waiting for an answer join the arbiter's queue.
   void syncArbiter(DateTime now) {
     if (!app.enabled('prescription')) return;
@@ -193,18 +208,21 @@ class Doses {
             name: 'Metformin',
             strength: '500 mg',
             note: 'After food',
+            since: today,
             schedule: Schedule(times: [const DayTime(9, 0), const DayTime(21, 0)], start: start)),
         Medicine(
             id: 'amlodipine',
             name: 'Amlodipine',
             strength: '5 mg',
             note: 'Morning',
+            since: today,
             schedule: Schedule(times: [const DayTime(9, 0)], start: start)),
         Medicine(
             id: 'atorvastatin',
             name: 'Atorvastatin',
             strength: '10 mg',
             note: 'Night',
+            since: today,
             schedule: Schedule(times: [const DayTime(21, 0)], start: start)),
       ]);
     if (app.settings.contacts('family').isEmpty) {

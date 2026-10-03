@@ -198,6 +198,23 @@ void main() {
       expect(b.log.map((e) => e.kind), [DoseEventKind.partial, DoseEventKind.taken]);
     });
 
+    test('a medicine added at noon has no 9 AM dose today', () {
+      final noon = DateTime(2026, 10, 3, 12);
+      final b = DoseBook(builtin('prescription').ladder, medicines: [
+        Medicine(
+            id: 'x',
+            name: 'X',
+            since: noon,
+            schedule: Schedule(times: [const DayTime(9, 0), const DayTime(21, 0)], start: noon)),
+      ]);
+      final fired = <String>[];
+      b.onStep = (o, s) => fired.add(s.id);
+      b.tick(noon);
+      expect(fired, isEmpty);
+      expect(b.today(noon).map((o) => o.due.hour), [21]);
+      expect(b.nextDue(noon), DateTime(2026, 10, 3, 21));
+    });
+
     test('a restart rebuilds from the log without re-sending', () {
       final now = DateTime(2026, 10, 3, 10, 30);
       final b = book();

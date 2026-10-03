@@ -17,10 +17,10 @@ class DayTime implements Comparable<DayTime> {
   DateTime on(DateTime day) => DateTime(day.year, day.month, day.day, hour, minute);
 
   @override
-  int compareTo(DayTime o) => (hour * 60 + minute).compareTo(o.hour * 60 + o.minute);
+  int compareTo(DayTime other) => (hour * 60 + minute).compareTo(other.hour * 60 + other.minute);
 
   @override
-  bool operator ==(Object o) => o is DayTime && o.hour == hour && o.minute == minute;
+  bool operator ==(Object other) => other is DayTime && other.hour == hour && other.minute == minute;
   @override
   int get hashCode => hour * 60 + minute;
 

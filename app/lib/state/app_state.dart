@@ -77,6 +77,71 @@ class AppState extends ChangeNotifier {
 
   bool enabled(String preset) => settings.presets.contains(preset);
 
+  String? _homeTab;
+
+  /// Which preset Home is showing.
+  String get homeTab {
+    final t = _homeTab;
+    if (t != null && enabled(t)) return t;
+    return settings.presets.isEmpty ? 'women' : settings.presets.first;
+  }
+
+  set homeTab(String id) {
+    _homeTab = id;
+    notifyListeners();
+  }
+
+  void enablePreset(String id) {
+    if (!enabled(id)) settings.presets = [...settings.presets, id];
+    _homeTab = id;
+    save();
+    note('${presets[id]?.name ?? id} added');
+  }
+
+  void disablePreset(String id) {
+    if (settings.presets.length <= 1) return;
+    settings.presets = settings.presets.where((p) => p != id).toList();
+    save();
+    notifyListeners();
+  }
+
+  /// Demo builds: wipe everything back to first run.
+  Future<void> resetDemo() async {
+    await stopSession(reason: 'Demo reset');
+    settings = Settings();
+    vault = PinVault();
+    log.clear();
+    recordings.clear();
+    doses.reset();
+    if (clock is DemoClock) (clock as DemoClock).reset();
+    _homeTab = null;
+    if (persist) {
+      final p = await SharedPreferences.getInstance();
+      await p.clear();
+    }
+    notifyListeners();
+  }
+
+  /// Demo builds: push the in-app clock forward.
+  void skipTime(Duration d) {
+    final c = clock;
+    if (c is! DemoClock) return;
+    c.skip(d);
+    note('Demo clock skipped ${d.inMinutes} min');
+    tick();
+  }
+
+  /// Demo builds: jump to the next dose time.
+  bool jumpToNextDose() {
+    final c = clock;
+    final next = doses.book.nextDue(now());
+    if (c is! DemoClock || next == null) return false;
+    c.jumpTo(next);
+    note('Demo clock jumped to the next dose');
+    tick();
+    return true;
+  }
+
   /// Guardians for Women Companion only: her safety data never goes to
   /// family or buddy contacts (principle 3).
   List<Guardian> get _guardians => settings.contacts('guardian');

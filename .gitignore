@@ -14,3 +14,7 @@ app/.dart_tool/
 backend/functions/node_modules/
 .firebase/
 firebase-debug.log
+
+# Hosting output, assembled by tools/build_site.ps1
+/public/
+hub/build/

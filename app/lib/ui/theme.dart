@@ -157,4 +157,10 @@ class WIcons {
   static const speaker = IconsaxPlusBold.volume_high;
   static const home3 = IconsaxPlusBold.house;
   static const flash = IconsaxPlusBold.flash_1;
+  static const pill = IconsaxPlusBold.health;
+  static const alarm = IconsaxPlusBold.alarm;
+  static const calendar = IconsaxPlusBold.calendar_tick;
+  static const clipboard = IconsaxPlusBold.clipboard_tick;
+  static const addSquare = IconsaxPlusBold.add_square;
+  static const clock = IconsaxPlusBold.clock;
 }

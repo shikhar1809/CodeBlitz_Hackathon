@@ -16,7 +16,7 @@
     }
   ],
   "hosting": {
-    "public": "app/build/web",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*"
@@ -34,8 +34,8 @@
         "destination": "/track.html"
       },
       {
-        "source": "**",
-        "destination": "/index.html"
+        "source": "/app/**",
+        "destination": "/app/index.html"
       }
     ],
     "headers": [
@@ -56,6 +56,22 @@
             "value": "no-cache"
           }
         ]
+      },
+      {
+        "source": "/downloads/**",
+        "headers": [
+          {
+            "key": "Content-Disposition",
+            "value": "attachment"
+          }
+        ]
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/app",
+        "destination": "/app/",
+        "type": 301
       }
     ]
   }

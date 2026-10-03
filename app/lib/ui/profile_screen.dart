@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import '../config.dart';
 import '../core/pin_vault.dart';
 import '../state/app_state.dart';
+import 'coming_soon_screen.dart';
+import 'demo_panel.dart';
 import 'help_screen.dart';
+import 'onboarding_screen.dart';
+import 'preset_switcher.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -116,8 +120,36 @@ class ProfileScreen extends StatelessWidget {
                 Switch(value: s.homeMode, onChanged: (v) => app.update((x) => x.homeMode = v))),
             row(WIcons.flash, W.marigold, 'Demo mode', 'Simulated walk instead of GPS',
                 Switch(value: s.demoMode || isDemo, onChanged: isDemo ? null : (v) => app.update((x) => x.demoMode = v))),
-            row(WIcons.key, W.sos, 'Change PINs', 'PIN and duress PIN', const Icon(Icons.arrow_right),
+            if (app.vault.isSet)
+              row(WIcons.key, W.sos, 'Change PINs', 'PIN and duress PIN', const Icon(Icons.arrow_right),
                 onTap: () => _changePins(context, app)),
+          ]),
+        ),
+        const SizedBox(height: 20),
+        const Text('Presets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 10),
+        WCard(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(children: [
+            for (final c in presetCards)
+              ListTile(
+                leading: GradientIcon(c.icon, c.colors, size: 40),
+                title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(c.comingSoon ? 'Coming soon' : c.tagline),
+                trailing: c.comingSoon
+                    ? const Icon(Icons.arrow_right)
+                    : Switch(
+                        value: app.enabled(c.id),
+                        onChanged: (v) {
+                          if (!v) return app.disablePreset(c.id);
+                          showModalBottomSheet(
+                              context: context, isScrollControlled: true, builder: (_) => const AddPresetSheet());
+                        },
+                      ),
+                onTap: c.comingSoon
+                    ? () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ComingSoonScreen(card: c)))
+                    : null,
+              ),
           ]),
         ),
         const SizedBox(height: 20),
@@ -130,6 +162,19 @@ class ProfileScreen extends StatelessWidget {
                 style: TextStyle(color: W.text2, fontSize: 13)),
           ),
         ]),
+        const SizedBox(height: 16),
+        Center(
+          child: GestureDetector(
+            onLongPress: isDemo
+                ? () => showModalBottomSheet(context: context, isScrollControlled: true, builder: (_) => const DemoPanel())
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Text('Winger 2.1${isDemo ? ' · demo build (long-press for the demo panel)' : ''}',
+                  style: const TextStyle(color: W.text2, fontSize: 12)),
+            ),
+          ),
+        ),
       ]),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../presets/prescription/meds_home.dart';
 import '../state/app_state.dart';
+import 'preset_switcher.dart';
 import 'alert_settings_screen.dart';
 import 'help_screen.dart';
 import 'locker_screen.dart';
@@ -39,62 +41,29 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
     final s = app.session;
-    final dot = app.statusColor ?? W.watching;
+    if (app.homeTab == 'prescription') {
+      return Stack(children: [
+        const _Sky(),
+        SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: const [
+              _Header(),
+              PresetSwitcher(),
+              MedsHome(),
+            ]),
+          ),
+        ),
+      ]);
+    }
     return Stack(children: [
       const _Sky(),
       SafeArea(
         child: FitOrScroll(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Column(children: [
-            Row(children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
-                  gradient: const LinearGradient(colors: [W.coral, Color(0xFFF2557A)]),
-                ),
-                child: Center(
-                  child: Text(app.settings.name.isEmpty ? 'W' : app.settings.name[0].toUpperCase(),
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(app.headline,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
-                  Row(children: [
-                    Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(app.statusText,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: W.text2, fontSize: 14)),
-                    ),
-                  ]),
-                ]),
-              ),
-              for (final g in app.settings.guardians.take(2))
-                Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: CircleAvatar(
-                    radius: 18,
-                    backgroundColor: W.gold,
-                    child: Text(g.initial,
-                        style: const TextStyle(color: W.text, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-            ]),
+            const _Header(),
+            const PresetSwitcher(),
             const SizedBox(height: 18),
             const Expanded(flex: 5, child: _TipsCard()),
             const SizedBox(height: 16),
@@ -329,4 +298,67 @@ class _Tile extends StatelessWidget {
           ]),
         ),
       );
+}
+
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    final app = AppScope.of(context);
+    final meds = app.homeTab == 'prescription';
+    final dot = meds ? W.watching : (app.statusColor ?? W.watching);
+    final headline = meds ? 'Hi ${app.settings.name}' : app.headline;
+    final statusText = meds ? app.doses.statusLine : app.statusText;
+    final contacts = app.settings.contacts(meds ? 'family' : 'guardian');
+    return Row(children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                  gradient: const LinearGradient(colors: [W.coral, Color(0xFFF2557A)]),
+                ),
+                child: Center(
+                  child: Text(app.settings.name.isEmpty ? 'W' : app.settings.name[0].toUpperCase(),
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(headline,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
+                  Row(children: [
+                    Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(statusText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: W.text2, fontSize: 14)),
+                    ),
+                  ]),
+                ]),
+              ),
+              for (final g in contacts.take(2))
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundColor: W.gold,
+                    child: Text(g.initial,
+                        style: const TextStyle(color: W.text, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+            ]);
+  }
 }

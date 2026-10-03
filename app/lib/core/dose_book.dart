@@ -9,19 +9,36 @@ class Medicine {
   final String strength;
   final String note;
   final Schedule schedule;
+
+  /// When it was added: no dose before this exists, so adding a medicine at
+  /// noon never makes the 9 AM dose "missed".
+  final DateTime? since;
   const Medicine(
-      {required this.id, required this.name, this.strength = '', this.note = '', required this.schedule});
+      {required this.id,
+      required this.name,
+      this.strength = '',
+      this.note = '',
+      required this.schedule,
+      this.since});
 
   String get label => strength.isEmpty ? name : '$name $strength';
 
   Map<String, dynamic> toJson() =>
-      {'id': id, 'name': name, 'strength': strength, 'note': note, 'schedule': schedule.toJson()};
+      {
+        'id': id,
+        'name': name,
+        'strength': strength,
+        'note': note,
+        'schedule': schedule.toJson(),
+        'since': since?.toIso8601String(),
+      };
   factory Medicine.fromJson(Map<String, dynamic> j) => Medicine(
         id: j['id'] as String,
         name: j['name'] as String,
         strength: j['strength'] as String? ?? '',
         note: j['note'] as String? ?? '',
         schedule: Schedule.fromJson(j['schedule'] as Map<String, dynamic>),
+        since: j['since'] == null ? null : DateTime.parse(j['since'] as String),
       );
 }
 
@@ -114,6 +131,7 @@ class DoseBook {
     final byTime = <DateTime, List<String>>{};
     for (final m in medicines) {
       for (final t in m.schedule.between(from, to)) {
+        if (m.since != null && t.isBefore(m.since!)) continue;
         (byTime[t] ??= []).add(m.id);
       }
     }

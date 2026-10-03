@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'presets/prescription/dose_check_in.dart';
 import 'state/app_state.dart';
 import 'ui/chat_screen.dart';
 import 'ui/check_in_overlay.dart';
@@ -52,6 +53,9 @@ class _ShellState extends State<_Shell> {
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
     final pages = const [HomeScreen(), ChatScreen(), ProfileScreen()];
+    // Safety owns the screen first; a dose check-in only when nothing outranks it.
+    final cur = app.screenCheckIn;
+    final dose = cur == null || cur == 'safety' ? null : app.doses.byId(cur);
     return Stack(children: [
       Scaffold(
         body: Column(children: [
@@ -66,7 +70,10 @@ class _ShellState extends State<_Shell> {
           ),
         ]),
       ),
-      if (app.showCheckIn) const Positioned.fill(child: CheckInOverlay()),
+      if (app.showCheckIn)
+        const Positioned.fill(child: CheckInOverlay())
+      else if (dose != null)
+        Positioned.fill(child: DoseCheckIn(o: dose)),
       if (app.banner != null)
         Positioned(
           left: 16,
