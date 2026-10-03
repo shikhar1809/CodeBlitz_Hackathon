@@ -57,7 +57,7 @@ class PatientMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = L10n.of(context);
-    final tiles = <Widget>[
+    final tiles = <_MenuTile>[
       _MenuTile(
         icon: Icons.add_a_photo_outlined,
         title: s.newPrescription,
@@ -118,13 +118,21 @@ class PatientMenu extends StatelessWidget {
                 // The demo link sits below the tiles, and must not push them
                 // off the screen.
                 final footer = demoTools ? _DemoLink.height : 0.0;
-                final rows = (tiles.length / 2).ceil();
+                // An odd tile out does not leave a hole beside it: it takes
+                // the whole last row as one short, wide tile, so the pairs
+                // above keep their height.
+                final pairs = tiles.length ~/ 2;
+                final wide = tiles.length.isOdd ? tiles.last.wide() : null;
+                final wideSpace = wide == null
+                    ? 0.0
+                    : _MenuTile.wideHeight + 16;
                 final fits =
                     (constraints.maxHeight -
                             header -
                             footer -
-                            16 * (rows - 1)) /
-                        rows >=
+                            wideSpace -
+                            16 * (pairs - 1)) /
+                        pairs >=
                     minTile;
                 final heading = Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -157,22 +165,23 @@ class PatientMenu extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     heading,
-                    for (var r = 0; r < rows; r++) ...[
+                    for (var r = 0; r < pairs; r++) ...[
                       if (r > 0) const SizedBox(height: 16),
                       Expanded(
-                        // An odd tile out takes the whole last row rather
-                        // than leaving a hole beside it.
-                        child: r * 2 + 1 < tiles.length
-                            ? Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(child: tiles[r * 2]),
-                                  const SizedBox(width: 16),
-                                  Expanded(child: tiles[r * 2 + 1]),
-                                ],
-                              )
-                            : tiles[r * 2],
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(child: tiles[r * 2]),
+                            const SizedBox(width: 16),
+                            Expanded(child: tiles[r * 2 + 1]),
+                          ],
+                        ),
                       ),
+                    ],
+                    if (wide != null) ...[
+                      const SizedBox(height: 16),
+                      // Its own height: a long Hindi line may need a second row.
+                      wide,
                     ],
                     if (demoTools) const _DemoLink(),
                   ],
@@ -390,12 +399,27 @@ class _MenuTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.onTap,
+    this.compact = false,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback? onTap;
+
+  /// The full-width row layout, for the odd tile out.
+  final bool compact;
+
+  /// Room for the icon disc and two lines of text beside it.
+  static const wideHeight = 112.0;
+
+  _MenuTile wide() => _MenuTile(
+    icon: icon,
+    title: title,
+    subtitle: subtitle,
+    onTap: onTap,
+    compact: true,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -404,6 +428,7 @@ class _MenuTile extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       onTap: onTap,
+      compact: compact,
       iconSize: 56,
       titleStyle: Theme.of(context).textTheme.titleLarge
           ?.copyWith(fontSize: 22, height: 1.2),

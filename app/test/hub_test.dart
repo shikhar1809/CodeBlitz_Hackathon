@@ -6,9 +6,12 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:winger/core/storage/app_prefs.dart';
+import 'package:winger/features/hub/book_appointment_screen.dart';
 import 'package:winger/features/hub/booking_progress_screen.dart';
+import 'package:winger/features/hub/hub_connect_screen.dart';
 import 'package:winger/features/hub/hub_client.dart';
 import 'package:winger/features/hub/hub_pairing_code.dart';
+import 'package:winger/platform/qr_scanner_stub.dart';
 
 import 'support/golden_harness.dart';
 
@@ -49,6 +52,17 @@ Map<String, Object?> jobJson(
   'result': result,
   'error': error,
 };
+
+/// Scroll the form until [f] is built and on screen: a ListView builds
+/// lazily, so a field below the fold does not exist yet.
+Future<void> scrollTo(WidgetTester tester, Finder f) async {
+  await tester.scrollUntilVisible(
+    f,
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.pump();
+}
 
 void main() {
   group('pairing QR', () {
@@ -425,6 +439,175 @@ void main() {
       expect(find.text('No slots left'), findsOneWidget);
       expect(find.text('Try again'), findsOneWidget);
       expect(find.text('Stop'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+  });
+
+  group('HubConnectScreen', () {
+    testWidgets('a typed address and code pair the phone and are stored', (
+      tester,
+    ) async {
+      usePhoneSurface(tester);
+      final state = await freshState(values: const {'user_name': 'Ramesh'});
+      final sent = <http.Request>[];
+      final client = MockClient((req) async {
+        sent.add(req);
+        return switch (req.url.path) {
+          '/api/pair' => json({
+            'deviceId': 'dev-9',
+            'token': 'secret',
+            'hub': {'name': 'Study laptop', 'version': '0.1.0'},
+          }),
+          '/api/health' => json({
+            'ok': true,
+            'hub': 'winger',
+            'version': '0.1.0',
+            'agent': {'ready': true, 'model': 'qwen'},
+          }),
+          _ => json({'deviceId': 'dev-9', 'name': "Ramesh's phone"}),
+        };
+      });
+      await tester.pumpWidget(
+        themed(
+          HubConnectScreen(
+            prefs: state.prefs,
+            scanner: UnsupportedQrScanner(),
+            httpClient: client,
+          ),
+          state: state,
+        ),
+      );
+      expect(
+        find.text(
+          'Connect to your Winger Hub at home (a spare computer running '
+          'the Hub app)',
+        ),
+        findsOneWidget,
+      );
+      await tester.enterText(find.byType(TextField).at(0), '192.168.1.20');
+      await tester.enterText(find.byType(TextField).at(1), '482913');
+      await tester.ensureVisible(find.text('Connect'));
+      await tester.tap(find.text('Connect'));
+      await tester.pumpAndSettle();
+
+      expect(jsonDecode(sent.first.body), {
+        'code': '482913',
+        'name': "Ramesh's phone",
+      });
+      expect(state.prefs.hubUrl, hubUrl);
+      expect(state.prefs.hubToken, 'secret');
+      expect(state.prefs.hubDeviceId, 'dev-9');
+      expect(find.text('Connected to Study laptop'), findsOneWidget);
+      expect(find.text(hubUrl), findsOneWidget);
+      expect(find.text('The Hub is on and ready.'), findsOneWidget);
+
+      await tester.tap(find.text('Disconnect'));
+      await tester.pumpAndSettle();
+      expect(state.prefs.hasHub, isFalse);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('a wrong code says so, and stores nothing', (tester) async {
+      usePhoneSurface(tester);
+      final state = await freshState();
+      await tester.pumpWidget(
+        themed(
+          HubConnectScreen(
+            prefs: state.prefs,
+            scanner: UnsupportedQrScanner(),
+            httpClient: MockClient((_) async => json({'error': 'bad'}, 403)),
+          ),
+          state: state,
+        ),
+      );
+      await tester.enterText(find.byType(TextField).at(0), '192.168.1.20');
+      await tester.enterText(find.byType(TextField).at(1), '000000');
+      await tester.ensureVisible(find.text('Connect'));
+      await tester.tap(find.text('Connect'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'That code is wrong or has expired. Get a new one on the Hub.',
+        ),
+        findsOneWidget,
+      );
+      expect(state.prefs.hasHub, isFalse);
+      await tester.pumpWidget(const SizedBox());
+    });
+  });
+
+  group('BookAppointmentScreen', () {
+    testWidgets('prefilled from the phone; asks for gender; sends the job', (
+      tester,
+    ) async {
+      usePhoneSurface(tester);
+      final state = await freshState();
+      await state.prefs.setHubLink(
+        url: hubUrl,
+        token: 'tok-1',
+        deviceId: 'dev-1',
+        name: 'Study laptop',
+      );
+      Map<String, Object?>? job;
+      final client = MockClient((req) async {
+        if (req.method == 'POST' && req.url.path == '/api/agent/jobs') {
+          job = (jsonDecode(req.body) as Map).cast();
+          return json({'id': 'job-7'});
+        }
+        return json(jobJson('running'));
+      });
+      await tester.pumpWidget(
+        themed(
+          BookAppointmentScreen(
+            prefs: state.prefs,
+            patientName: 'Ramesh',
+            patientPhone: '9876543210',
+            patientAge: 67,
+            httpClient: client,
+          ),
+          state: state,
+        ),
+      );
+      expect(find.text('Ramesh'), findsOneWidget);
+      expect(find.text('9876543210'), findsOneWidget);
+      expect(find.text('67'), findsOneWidget);
+
+      final ask = find.text('Ask the Hub to book');
+      await scrollTo(tester, ask);
+      await tester.tap(ask);
+      await tester.pump();
+      expect(job, isNull);
+      // Back to the top, where the gender question now shows its error.
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, 3000));
+      await tester.pumpAndSettle();
+      expect(find.text('Choose Female, Male or Other'), findsOneWidget);
+
+      await tester.tap(find.text('Male'));
+      await scrollTo(tester, find.text('Morning'));
+      await tester.tap(find.text('Morning'));
+      await tester.pump();
+      await scrollTo(tester, ask);
+      await tester.tap(ask);
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(job!['kind'], 'book_appointment');
+      expect(job!['url'], demoClinicUrl);
+      expect(job!['patient'], {
+        'name': 'Ramesh',
+        'age': 67,
+        'gender': 'Male',
+        'phone': '9876543210',
+      });
+      expect(job!['request'], {
+        'department': 'General Medicine',
+        'doctor': '',
+        'date': '',
+        'timeOfDay': 'morning',
+        'reason': '',
+      });
+      expect(find.byType(BookingProgressScreen), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
   });
