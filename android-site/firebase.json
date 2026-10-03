@@ -1,0 +1,2 @@
+{ "hosting": { "site": "wingerandroid", "public": "public",
+  "headers": [{ "source": "**/*.apk", "headers": [{ "key": "Content-Type", "value": "application/vnd.android.package-archive" }] }] } }
