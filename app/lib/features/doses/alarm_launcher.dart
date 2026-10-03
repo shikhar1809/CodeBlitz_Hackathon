@@ -10,7 +10,10 @@ import '../../core/plain_language.dart';
 import '../../domain/dose_alarm.dart';
 import '../../domain/scheduled_medicine.dart';
 import '../../platform/dose_reminders.dart';
+import '../calls/winger_call_screen.dart';
 import '../caregiver/family.dart';
+import '../caregiver/whatsapp_alerts.dart';
+import '../family/family_sync.dart';
 import '../medicines/medicine_store.dart';
 import 'alarm_screen.dart';
 import 'dose_log_store.dart';
@@ -27,6 +30,7 @@ Future<bool> openDoseAlarm(
   required AppState state,
   DoseReminders? reminders,
   DateTime Function() clock = DateTime.now,
+  bool asCall = true,
 }) async {
   final store = await MedicineStore.load();
   final logs = await DoseLogStore.load();
@@ -51,8 +55,8 @@ Future<bool> openDoseAlarm(
     strings: strings,
   );
 
-  unawaited(
-    navigator.push(
+  // The per-medicine confirmation: a tick for each, then "सब ले ली".
+  Future<void> openTicks() => navigator.push(
       MaterialPageRoute<bool>(
         builder: (_) => AlarmScreen(
           slot: payload.slot,
@@ -71,9 +75,62 @@ Future<bool> openDoseAlarm(
           onLater: (_, _) => resync(store.active()),
         ),
       ),
+    );
+
+  if (!asCall) {
+    unawaited(openTicks());
+    return true;
+  }
+  // First a call from Winger: it rings like the phone's own call, so someone
+  // who never reads a notification still hears which medicines are due.
+  unawaited(
+    navigator.push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => WingerCallScreen(
+          kind: CallKind.medicine,
+          patientName: state.prefs.name ?? '',
+          language: state.language,
+          medicines: [for (final m in due) m.name],
+          onTook: openTicks,
+          onLater: () => resync(store.active()),
+        ),
+      ),
     ),
   );
   return true;
+}
+
+/// The daily check-in call: "How are you feeling today?". Not well, or
+/// "call my family", tells the family on WhatsApp and on the Home Vault.
+Future<void> openCheckInCall(NavigatorState navigator, AppState state) async {
+  final family = await FamilySync.load();
+  if (!navigator.mounted) return;
+  await navigator.push(
+    MaterialPageRoute<void>(
+      fullscreenDialog: true,
+      builder: (_) => WingerCallScreen(
+        kind: CallKind.checkIn,
+        patientName: state.prefs.name ?? '',
+        language: state.language,
+        onFeeling: (feeling) async {
+          unawaited(family.event({
+            'type': 'checkin',
+            'at': DateTime.now().toIso8601String(),
+            'feeling': feeling.name,
+          }));
+          if (feeling == Feeling.fine) return;
+          final to = state.prefs.alertPhone;
+          if (to == null) return;
+          final name = state.prefs.name ?? '';
+          final body = feeling == Feeling.help
+              ? 'Winger: $name asked for you on the daily check-in call. Please call now.'
+              : 'Winger: $name said they are not feeling well on the daily check-in call. Please call them.';
+          unawaited(WhatsAppAlerts().send(to, body));
+        },
+      ),
+    ),
+  );
 }
 
 /// The demo button (DevFlags.demoTools): the alarm for today's slot nearest

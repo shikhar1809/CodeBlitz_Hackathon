@@ -22,4 +22,20 @@ abstract final class DevFlags {
   /// On for the hackathon build. **Turn it off for a store build**: it lets
   /// anyone ring an alarm on demand, and a patient has no use for it.
   static const bool demoTools = true;
+
+  /// Demo builds (`--dart-define=WINGER_DEMO=true`): onboarding comes
+  /// prefilled with [DemoProfile], so a judge taps Continue through it.
+  static const bool prefillDemo = bool.fromEnvironment('WINGER_DEMO');
+}
+
+/// What a demo build prefills. Test values, not a real person.
+abstract final class DemoProfile {
+  static const phone = '9876543210';
+  static const otp = '1234';
+  static const name = 'Kamla Devi';
+  static const pin = '2580';
+  static const age = '68';
+
+  /// The Home Vault on the demo laptop (`--dart-define=WINGER_VAULT_URL=…`).
+  static const vaultUrl = String.fromEnvironment('WINGER_VAULT_URL');
 }

@@ -89,6 +89,22 @@ class FakeEngine implements SpeechEngine {
   Future<void> stop() async {}
 }
 
+/// A dose alarm now rings as a call from Winger first: answer it, say
+/// "I took them", and the per-medicine alarm opens.
+Future<void> answerWingerCall(WidgetTester tester) async {
+  await tester.pump(const Duration(milliseconds: 300));
+  for (var i = 0; i < 5; i++) {
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+  expect(find.byKey(const Key('call-answer')), findsOneWidget);
+  await tester.tap(find.byKey(const Key('call-answer')));
+  await tester.pump(const Duration(milliseconds: 300));
+  await tester.tap(find.byKey(const Key('call-took')));
+  for (var i = 0; i < 10; i++) {
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+}
+
 void main() {
   late DoseLogStore logs;
   late FakeReminders reminders;
@@ -298,7 +314,7 @@ void main() {
           clock: () => now,
         ),
       );
-      await tester.pumpAndSettle();
+      await answerWingerCall(tester);
       expect(opened, isTrue);
       expect(find.text('TELMA 40'), findsOneWidget);
       expect(find.text('GLYCOMET 500'), findsOneWidget);
@@ -335,7 +351,7 @@ void main() {
           reminders: reminders,
         ),
       );
-      await tester.pumpAndSettle();
+      await answerWingerCall(tester);
       expect(opened, isTrue);
       expect(find.text(DoseAlarm.demoMedicine.name), findsOneWidget);
       expect(find.text('Demo — nothing on this screen is saved'), findsOne);

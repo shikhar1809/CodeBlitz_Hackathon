@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/dev_flags.dart';
 import '../../core/feedback/haptics.dart';
 import '../../core/feedback/pressable.dart';
 import '../../core/l10n/l10n.dart';
@@ -28,7 +29,11 @@ class HealthProfileScreen extends StatefulWidget {
 }
 
 class _HealthProfileScreenState extends State<HealthProfileScreen> {
-  late final _age = TextEditingController(text: _s(c.prefs.age));
+  late final _age = TextEditingController(
+    text: c.prefs.age == null && DevFlags.prefillDemo
+        ? DemoProfile.age
+        : _s(c.prefs.age),
+  );
   late final _height = TextEditingController(text: _s(c.prefs.heightCm));
   late final _weight = TextEditingController(text: _s(c.prefs.weightKg));
   late final _ayushman = TextEditingController(text: c.prefs.ayushmanId);

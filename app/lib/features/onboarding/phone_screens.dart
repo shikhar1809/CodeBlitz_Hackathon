@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/dev_flags.dart';
 import '../../core/feedback/haptics.dart';
 import '../../core/feedback/pressable.dart';
 import '../../core/l10n/l10n.dart';
@@ -86,7 +87,9 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
-  final _controller = TextEditingController();
+  final _controller = TextEditingController(
+    text: DevFlags.prefillDemo ? DemoProfile.otp : null,
+  );
   String? _error;
 
   @override
@@ -206,7 +209,9 @@ class PinScreen extends StatefulWidget {
 }
 
 class _PinScreenState extends State<PinScreen> {
-  final _controller = TextEditingController();
+  final _controller = TextEditingController(
+    text: DevFlags.prefillDemo ? DemoProfile.pin : null,
+  );
   String? _error;
 
   @override

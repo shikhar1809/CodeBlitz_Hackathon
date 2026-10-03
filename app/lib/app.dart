@@ -27,6 +27,8 @@ import 'features/onboarding/phone_screens.dart';
 import 'features/onboarding/role_screen.dart';
 import 'features/onboarding/saving_screen.dart';
 import 'features/onboarding/splash_screen.dart';
+import 'features/family/family_sync.dart';
+import 'features/family/vault_screen.dart';
 import 'features/onboarding/voice_help_screen.dart';
 import 'features/pairing/caretaker_confirm_screen.dart';
 import 'features/pairing/caretaker_pairing.dart';
@@ -47,6 +49,7 @@ enum _Stage {
   pinConfirm,
   role,
   health,
+  familyVault,
   caretakerType,
   caretakerQr,
   caretakerConfirm,
@@ -105,6 +108,14 @@ class _WingerAppState extends State<WingerApp> {
   );
   late final CaretakerPairing _pairing = CaretakerPairing(prefs: _prefs);
 
+  /// Home Vault sharing. Loaded at start; null until then (and in tests
+  /// that turn sync off, where the Vault step is never shown).
+  FamilySync? _family;
+
+  /// The Vault step comes once, for a patient, when sync is on.
+  bool get _askVault =>
+      widget.enableSync && _family != null && !_family!.decided;
+
   @override
   void initState() {
     super.initState();
@@ -113,6 +124,13 @@ class _WingerAppState extends State<WingerApp> {
     // including the alarm that started the app from cold.
     WidgetsBinding.instance.addPostFrameCallback((_) => _alarms.start());
     _startSync();
+    if (widget.enableSync) {
+      FamilySync.load().then((f) {
+        if (!mounted) return;
+        setState(() => _family = f);
+        unawaited(f.share());
+      });
+    }
   }
 
   /// Offline save and sync for the whole app: drains the queue whenever the
@@ -253,7 +271,10 @@ class _WingerAppState extends State<WingerApp> {
 
       case _Stage.phone:
         return PhoneScreen(
-          initial: _phone ?? _prefs.phoneNumber,
+          initial:
+              _phone ??
+              _prefs.phoneNumber ??
+              (DevFlags.prefillDemo ? DemoProfile.phone : null),
           onSubmitted: (phone) {
             _phone = phone;
             _go(_Stage.phoneOtp);
@@ -271,7 +292,8 @@ class _WingerAppState extends State<WingerApp> {
 
       case _Stage.profile:
         return ProfileScreen(
-          initialName: _prefs.name,
+          initialName:
+              _prefs.name ?? (DevFlags.prefillDemo ? DemoProfile.name : null),
           onSubmitted: (name) async {
             await _prefs.setName(name);
             _go(_Stage.pin);
@@ -317,8 +339,13 @@ class _WingerAppState extends State<WingerApp> {
             pmjay: widget.pmjay,
             sync: _state.sync,
           ),
-          onDone: () => _go(_Stage.ready),
+          onDone: () => _go(_askVault ? _Stage.familyVault : _Stage.ready),
         );
+
+      case _Stage.familyVault:
+        final family = _family;
+        if (family == null) return PatientMenu(onRestart: _restart);
+        return VaultScreen(sync: family, onDone: () => _go(_Stage.ready));
 
       case _Stage.caretakerType:
         return CaretakerTypeScreen(
@@ -363,6 +390,7 @@ class _WingerAppState extends State<WingerApp> {
     await _state.setRole(role);
     _go(switch (role) {
       AppRole.patient when _prefs.age == null => _Stage.health,
+      AppRole.patient when _askVault => _Stage.familyVault,
       AppRole.patient => _Stage.ready,
       AppRole.caregiver => _caretakerNext(),
     });

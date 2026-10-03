@@ -27,6 +27,7 @@ import '../visit/visit_repository.dart';
 import '../wizard/online_read_card.dart';
 import '../pairing/patient_pairing.dart';
 import '../pairing/patient_scan_screen.dart';
+import '../../core/l10n/strings_family.dart';
 import '../wizard/wizard_controller.dart';
 import '../wizard/wizard_screen.dart';
 import 'prescriptions_screen.dart';
@@ -316,10 +317,22 @@ class _DemoLink extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            TextButton.icon(
-              icon: const Icon(Icons.alarm_rounded),
-              label: Text(s.doseDemo),
-              onPressed: () => _showDemoSheet(context),
+            Flexible(
+              child: TextButton.icon(
+                icon: const Icon(Icons.alarm_rounded),
+                label: Text(s.doseDemo, overflow: TextOverflow.ellipsis),
+                onPressed: () => _showDemoSheet(context),
+              ),
+            ),
+            Flexible(
+              child: TextButton.icon(
+                icon: const Icon(Icons.phone_in_talk_rounded),
+                label: Text(s.demoCheckInCall, overflow: TextOverflow.ellipsis),
+                onPressed: () => openCheckInCall(
+                  Navigator.of(context),
+                  AppScope.of(context),
+                ),
+              ),
             ),
           ],
         ),

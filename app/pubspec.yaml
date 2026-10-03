@@ -29,6 +29,8 @@ dependencies:
   qr_flutter: ^4.1.0                      # the caretaker's pairing code
   mobile_scanner: ^7.0.0                  # the patient scans that code
   connectivity_plus: ^7.0.0               # save offline, sync when back online
+  cryptography: ^2.9.0
+  elevenlabs_agents: ^0.6.1
 
 dev_dependencies:
   flutter_test:

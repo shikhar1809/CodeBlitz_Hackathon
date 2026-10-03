@@ -245,13 +245,24 @@ void main() {
       await tester.tap(find.text('Dose demo'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Show the alarm now'));
-      await tester.pumpAndSettle();
+      // It rings as a call from Winger first.
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+      await tester.tap(find.byKey(const Key('call-answer')));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const Key('call-took')));
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
 
       // An empty schedule: the clearly named demo medicine.
       expect(find.text('DEMO MEDICINE 500'), findsOneWidget);
       expect(find.text('Demo — nothing on this screen is saved'), findsOne);
       await tester.tap(find.text('Yes, taken'));
-      await tester.pumpAndSettle();
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
       expect(find.text('Demo finished. Nothing was saved.'), findsOneWidget);
       expect(state.prefs.raw.getString('dose_logs'), isNull);
     });

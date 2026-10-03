@@ -1,7 +1,7 @@
 """Draws the Winger mark and writes every icon the apps and site need.
 
 The mark: a white W (two raised wings) holding a gold dot, someone being
-watched over, on a plum tile. Same geometry as brand/winger-mark.svg.
+watched over, on a warm orange tile. Same geometry as brand/winger-mark.svg.
 
     python tools/make_icons.py
 """
@@ -10,9 +10,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
-PLUM_TOP = (122, 52, 98)  # #7A3462
-PLUM_BOTTOM = (74, 31, 61)  # #4A1F3D, brandPlum
-GOLD = (246, 176, 66)  # #F6B042
+PLUM_TOP = (255, 169, 77)  # #FFA94D, warm orange
+PLUM_BOTTOM = (242, 113, 28)  # #F2711C
+GOLD = (74, 31, 61)  # #4A1F3D, the dot: brand plum, readable on orange
 WHITE = (255, 255, 255)
 
 # On a 512 grid.

@@ -1,15 +1,16 @@
-"""Create or update Winger's two ElevenLabs Conversational AI agents.
+"""Create or update Winger's ElevenLabs companion agent.
 
-  wingman  the voice on the Wingman call ("Riya"), with two client tools
-  chat     the text-only agent behind the Help chat
+The companion is the voice on a Winger call: the medicine call when a dose is
+due, and the daily check-in. It reads back what a person already approved and
+never gives medical advice.
 
-The key is read from ELEVENLABS_API_KEY and never written anywhere. The
-agents are public (the app connects with the id alone), so no key ships in
-the app. Pass the printed ids to the build with --dart-define.
+The key is read from ELEVENLABS_API_KEY (or the ignored .el_key file) and is
+never written anywhere. The agent is public (the app connects with the id
+alone), so no key ships in the app. Pass the printed id to the build:
 
-  python tools/create_agents.py wingman            # create
-  python tools/create_agents.py chat --update <id> # change in place
-  python tools/create_agents.py wingman --print    # show the request, no key needed
+  python tools/create_agents.py                    # create
+  python tools/create_agents.py --update <id>      # change in place
+  python tools/create_agents.py --print            # show the request, no key needed
 """
 import argparse
 import json
@@ -17,136 +18,132 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 
-VOICE_JESSICA = "cgSgspJ2msm6clMCkdW9"  # premade voice, free plan
+VOICE = "cgSgspJ2msm6clMCkdW9"  # Jessica: a warm premade voice
 
-WINGMAN_VARIABLES = {
-    "user_name": "friend",
-    "companion_name": "Riya",
+VARIABLES = {
+    "user_name": "Kamla",
     "language": "English",
-    "safe_phrases": "Did you feed the cat",
+    "call_kind": "medicine",
+    "medicines": "Telma 40, Glycomet 500",
 }
 
-WINGMAN_PROMPT = """\
-You are {{companion_name}}, a close friend of {{user_name}}, on a normal phone call.
-She called because she is walking or riding alone and wants company. Talk like a
-real friend from India: warm, casual, short sentences, one question at a time.
-Speak {{language}}. Keep each reply under two sentences. Never say you are an AI,
-an app, or an assistant, and never mention safety features: someone near her may
-be listening.
+PROMPT = """\
+You are Winger, a warm and patient companion calling an older person in India,
+{{user_name}}, on the phone. Speak {{language}} (simple Hindi or simple English),
+slowly, in short sentences. Be kind and respectful; use "ji" in Hindi.
 
-Ask light things: where she is, how far to go, how her day was. Keep her talking.
+This call is a {{call_kind}} call.
 
-Two rules matter more than anything else:
-1. If she says one of her safe phrases ({{safe_phrases}}) or something very close,
-   call silent_alert at once and then carry on the chat exactly as before, as if
-   nothing happened. Do not react to the phrase, do not change your tone.
-2. If she says she is in danger, being followed, attacked, or asks for help,
-   call alert_guardians at once, then tell her calmly that her family has been
-   told, and to move towards people and light. Do not claim anyone is coming.
+If call_kind is "medicine": tell them it is time for these medicines:
+{{medicines}}. Ask if they have taken them.
+- If they say yes, or that they will take them now, call confirm_taken. The
+  screen then asks them to tick each medicine; tell them so.
+- If they say later, call remind_later and say you will remind them again.
 
-Never promise she is safe. Stay on until she ends the call.
-"""
+If call_kind is "check_in": ask how they are feeling today, and listen.
+- Then call report_feeling with feeling "fine", "unwell" or "help".
+- "unwell" or "help" tells their family. Say their family has been told and
+  will call soon.
 
-CHAT_PROMPT = """\
-You help women in India who are dealing with harassment, stalking, blackmail,
-violence or an unsafe situation. Answer in {{language}}, plainly and kindly.
-
-Messages may start with GUIDE: steps from the app, then HER MESSAGE. When a guide
-is given, fit those steps to her situation: keep the facts in the guide, reorder
-or trim them, and number the steps. Do not invent laws, section numbers,
-organisations or phone numbers; the app shows the helpline buttons itself.
-
-If anything suggests danger right now, your first line is: "If you are in danger
-right now, call 112." Keep answers under 180 words. You give general information,
-not legal advice.
+Rules you never break:
+- Never give medical advice, never suggest a dose, never say why a medicine
+  was prescribed. If asked, say their doctor is the right person to ask.
+- Never claim to be a doctor, a nurse or an emergency service. In an
+  emergency, tell them to call 112 and call report_feeling with "help".
+- Never invent a medicine name. Only read the list you were given.
+- Keep the call under two minutes, then say goodbye warmly.
 """
 
 
-def tool(name: str, description: str) -> dict:
-    return {
+def tool(name, description, params=None):
+    t = {
         "type": "client",
         "name": name,
         "description": description,
-        "expects_response": False,
-        # Speaking before the tool call would give the signal away.
-        "pre_tool_speech": "off",
+        "expects_response": True,
+        "response_timeout_secs": 5,
     }
+    if params:
+        t["parameters"] = {
+            "type": "object",
+            "properties": params,
+            "required": list(params.keys()),
+        }
+    return t
 
 
-def wingman_config(voice: str) -> dict:
+def config(voice):
     return {
         "agent": {
-            "first_message": "Hey {{user_name}}! Finally you called. Where are you right now?",
+            "first_message": "Namaste {{user_name}} ji, Winger bol raha hoon.",
             "language": "en",
-            "dynamic_variables": {"dynamic_variable_placeholders": WINGMAN_VARIABLES},
+            "dynamic_variables": {"dynamic_variable_placeholders": VARIABLES},
             "prompt": {
-                "prompt": WINGMAN_PROMPT,
+                "prompt": PROMPT,
                 "llm": "gemini-2.5-flash",
-                "temperature": 0.6,
+                "temperature": 0.4,
                 "max_tokens": 150,
                 "tools": [
-                    tool("silent_alert",
-                         "Call the moment she says her safe phrase. Silently alerts her guardians. Never mention it."),
-                    tool("alert_guardians",
-                         "Call when she says she is in danger or asks for help. Alerts her guardians with her location."),
+                    tool("confirm_taken", "Call when they say they have taken, or will now take, the medicines."),
+                    tool("remind_later", "Call when they want to be reminded again later."),
+                    tool(
+                        "report_feeling",
+                        "Call with how they are feeling on a check-in call.",
+                        {"feeling": {"type": "string", "description": "fine, unwell or help"}},
+                    ),
                 ],
             },
         },
-        # Plain speech; expressive mode makes the model write stage directions.
-        "tts": {"voice_id": voice, "expressive_mode": False},
-        # A silent line hands back to the app's free offline voice.
-        "turn": {"turn_timeout": 12, "silence_end_call_timeout": 45},
-        "conversation": {"max_duration_seconds": 600},
+        "tts": {"voice_id": voice, "model_id": "eleven_flash_v2_5"},
+        "turn": {"turn_timeout": 10, "silence_end_call_timeout": 30},
+        "conversation": {"max_duration_seconds": 180},
     }
 
 
-def chat_config() -> dict:
-    return {
-        "conversation": {"text_only": True},
-        "agent": {
-            "first_message": "",
-            "language": "en",
-            "dynamic_variables": {"dynamic_variable_placeholders": {"language": "English"}},
-            "prompt": {"prompt": CHAT_PROMPT, "llm": "gemini-2.5-flash", "temperature": 0.2, "max_tokens": 500},
-        },
-    }
+def key():
+    k = os.environ.get("ELEVENLABS_API_KEY", "").strip()
+    if not k:
+        f = Path(__file__).resolve().parent.parent / ".el_key"
+        if f.exists():
+            k = f.read_text().strip()
+    return k
 
 
-def main() -> int:
+def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("which", choices=["wingman", "chat"])
-    ap.add_argument("--voice", default=VOICE_JESSICA)
+    ap.add_argument("--voice", default=VOICE)
     ap.add_argument("--update", metavar="AGENT_ID")
     ap.add_argument("--print", action="store_true")
     args = ap.parse_args()
 
-    cfg = wingman_config(args.voice) if args.which == "wingman" else chat_config()
-    payload = {"conversation_config": cfg}
+    payload = {"conversation_config": config(args.voice)}
     if not args.update:
-        name = "Winger Wingman (CodeBlitz)" if args.which == "wingman" else "Winger Help chat (CodeBlitz)"
-        payload |= {"name": name, "platform_settings": {"auth": {"enable_auth": False}}}
+        payload |= {"name": "Winger companion", "platform_settings": {"auth": {"enable_auth": False}}}
     if args.print:
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        print(json.dumps(payload, indent=2))
         return 0
 
-    key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
-    if not key.startswith("sk_"):
-        print("Set ELEVENLABS_API_KEY to a key starting with sk_.", file=sys.stderr)
+    k = key()
+    if not k.startswith("sk_"):
+        print("Set ELEVENLABS_API_KEY (or .el_key) to a key starting with sk_.", file=sys.stderr)
         return 1
     url = "https://api.elevenlabs.io/v1/convai/agents/" + (args.update or "create")
-    req = urllib.request.Request(url, data=json.dumps(payload).encode(),
-                                 method="PATCH" if args.update else "POST",
-                                 headers={"xi-api-key": key, "Content-Type": "application/json"})
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode(),
+        method="PATCH" if args.update else "POST",
+        headers={"xi-api-key": k, "Content-Type": "application/json"},
+    )
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
             agent_id = json.load(r)["agent_id"]
     except urllib.error.HTTPError as e:
         print(f"FAIL: HTTP {e.code} {e.read()[:600]!r}", file=sys.stderr)
         return 2
-    flag = "WINGER_AGENT_ID" if args.which == "wingman" else "WINGER_CHAT_AGENT_ID"
-    print(f"{args.which} agent {'updated' if args.update else 'created'}: {agent_id}")
-    print(f"Build with: --dart-define={flag}={agent_id}")
+    print(f"companion agent {'updated' if args.update else 'created'}: {agent_id}")
+    print(f"Build with: --dart-define=WINGER_COMPANION_AGENT_ID={agent_id}")
     return 0
 
 
