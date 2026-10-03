@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll;
 
@@ -37,6 +38,15 @@ class SessionScreen extends StatelessWidget {
           Text(title),
         ]),
         actions: [
+          if (app.cloud.trackUrl != null)
+            IconButton(
+              tooltip: 'Copy guardian live link',
+              icon: const Icon(Icons.link),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: app.cloud.trackUrl!));
+                app.showBanner('Live link copied');
+              },
+            ),
           IconButton(
             tooltip: 'Call Wingman',
             icon: const Icon(WIcons.call),
