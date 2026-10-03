@@ -9,5 +9,6 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   final state = AppState();
   await state.load();
+  state.startTicking();
   runApp(WingerApp(state: state));
 }

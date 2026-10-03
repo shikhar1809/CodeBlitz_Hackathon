@@ -1,0 +1,1 @@
+{"id":"fake_safety","version":1,"name":"X","watch":"continuous","priority":"safety","checkIn":"overlay","ladder":[{"id":"a","after":"0m","actions":["notify"]}]}

@@ -3,21 +3,26 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
+import '../core/arbiter.dart';
+import '../core/clock.dart';
 import '../core/evidence_chain.dart';
 import '../core/geo.dart';
 import '../core/journey_monitor.dart';
 import '../core/ladder.dart';
 import '../core/pin_vault.dart';
+import '../core/presets.dart';
 import '../core/threat_judge.dart';
 import '../services/alert_service.dart';
 import '../services/cloud_service.dart';
 import '../services/ear.dart';
 import '../services/voice_service.dart';
 import '../ui/theme.dart';
+import '../presets/prescription/doses.dart';
 import 'models.dart';
 import 'wingman_call.dart';
 
@@ -25,13 +30,28 @@ export 'models.dart';
 
 /// Every action the UI can take, wired to the core engine and services.
 class AppState extends ChangeNotifier {
-  AppState({AlertService? alerts, VoiceService? voice, Ear? ear, CloudService? cloud, this.persist = true})
-      : alerts = alerts ?? AlertService(),
+  AppState({
+    AlertService? alerts,
+    VoiceService? voice,
+    Ear? ear,
+    CloudService? cloud,
+    Clock? clock,
+    Map<String, Preset>? presets,
+    this.persist = true,
+  })  : alerts = alerts ?? AlertService(),
+        clock = clock ?? (isDemo ? DemoClock() : const SystemClock()),
+        presets = presets ?? {},
         cloud = cloud ?? CloudService(),
         voice = voice ?? VoiceService(),
         ear = ear ?? Ear();
 
   final AlertService alerts;
+  final Clock clock;
+
+  /// Built-in presets by id (loaded from assets/presets/).
+  final Map<String, Preset> presets;
+  final Arbiter arbiter = Arbiter();
+  late final Doses doses = Doses(this);
   final CloudService cloud;
   final VoiceService voice;
   final Ear ear;
@@ -48,17 +68,34 @@ class AppState extends ChangeNotifier {
   final _rng = Random();
   String? banner;
 
-  DateTime now() => DateTime.now();
+  DateTime now() => clock.now();
+
+  /// For controllers that change state (preset modules).
+  void changed() => notifyListeners();
+
+  static const presetIds = ['women', 'prescription', 'adhd'];
+
+  bool enabled(String preset) => settings.presets.contains(preset);
+
+  /// Guardians for Women Companion only: her safety data never goes to
+  /// family or buddy contacts (principle 3).
+  List<Guardian> get _guardians => settings.contacts('guardian');
 
   // ---------------------------------------------------------------- storage
 
   Future<void> load() async {
+    if (presets.isEmpty) {
+      for (final id in presetIds) {
+        presets[id] = Preset.parse(await rootBundle.loadString('assets/presets/$id.json'), builtin: true);
+      }
+    }
     if (!persist) return;
     final p = await SharedPreferences.getInstance();
     final s = p.getString('settings');
     final v = p.getString('vault');
     if (s != null) settings = Settings.fromJson(jsonDecode(s));
     if (v != null) vault = PinVault.fromJson(jsonDecode(v));
+    await doses.load(p);
     notifyListeners();
   }
 
@@ -67,6 +104,13 @@ class AppState extends ChangeNotifier {
     final p = await SharedPreferences.getInstance();
     await p.setString('settings', jsonEncode(settings.toJson()));
     await p.setString('vault', jsonEncode(vault.toJson()));
+    await doses.save(p);
+  }
+
+  /// Runs the engine once a second for as long as the app is open.
+  void startTicking() {
+    _ticker?.cancel();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => tick());
   }
 
   void update(void Function(Settings s) change) {
@@ -98,16 +142,20 @@ class AppState extends ChangeNotifier {
     required String name,
     required String lang,
     required List<Guardian> guardians,
-    required String pin,
-    required String duress,
-    required bool homeMode,
+    String? pin,
+    String? duress,
+    bool homeMode = false,
+    List<String> presets = const ['women'],
+    bool caregiver = false,
   }) {
-    vault = PinVault()..setPins(pin, duress);
+    if (pin != null && duress != null) vault = PinVault()..setPins(pin, duress);
     settings
       ..name = name.trim()
       ..lang = lang
       ..guardians = guardians
       ..homeMode = homeMode
+      ..presets = [...presets]
+      ..caregiver = caregiver
       ..onboarded = true;
     save();
     note('Winger set up for ${settings.name}');
@@ -202,11 +250,9 @@ class AppState extends ChangeNotifier {
         kind: kind, startedAt: t, recording: rec, checkInEvery: _checkInEvery, windows: _windows);
     s.ladder.onClimb = (from, to) => _onClimb(s, from, to);
     session = s;
-    _ticker?.cancel();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => tick());
     note('Blackbox recording (GPS only, no mic)');
     final link = await cloud.start(
-        name: settings.name, kind: kind.name, guardians: settings.guardians.map((g) => g.phone).toList());
+        name: settings.name, kind: kind.name, guardians: _guardians.map((g) => g.phone).toList());
     if (session != s) return s;
     if (link != null) note('Live tracking link ready');
     if (!quiet) {
@@ -301,9 +347,14 @@ class AppState extends ChangeNotifier {
   }
 
   void tick() {
-    final s = session;
-    if (s == null) return;
     final t = now();
+    if (enabled('prescription')) doses.tick(t);
+    _syncArbiter(t);
+    final s = session;
+    if (s == null) {
+      notifyListeners();
+      return;
+    }
     s.ladder.tick(t);
     if (t.isAfter(s.nextCheckIn)) {
       s.nextCheckIn = t.add(s.checkInEvery);
@@ -315,8 +366,23 @@ class AppState extends ChangeNotifier {
     call?.tick(t);
     if (++_blackboxTick % 5 == 0) _blackbox(s);
     if (_blackboxTick % 15 == 0) cloud.beat(at: s.location, status: cloudStatus);
+    _syncArbiter(t);
     notifyListeners();
   }
+
+  /// One check-in on screen at a time: safety first, then doses.
+  void _syncArbiter(DateTime t) {
+    if (showCheckIn) {
+      arbiter.add(CheckInRequest('safety', Priority.safety, t));
+    } else if (arbiter.contains('safety')) {
+      arbiter.remove('safety');
+      doses.releaseHeld();
+    }
+    doses.syncArbiter(t);
+  }
+
+  /// The check-in that owns the screen: 'safety', a dose id, or null.
+  String? get screenCheckIn => arbiter.current?.id;
 
   // ------------------------------------------------------------- location
 
@@ -440,7 +506,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _smsAll(String body) async {
-    for (final g in settings.guardians) {
+    for (final g in _guardians) {
       final real = await alerts.sendSms(g.phone, body);
       note('SMS to ${g.phone}${real ? '' : ' (simulated)'}: $body');
     }
@@ -450,12 +516,12 @@ class AppState extends ChangeNotifier {
   Future<void> alertGuardians(String reason) async {
     final s = session;
     if (s == null) return;
-    s.guardiansAlerted = settings.guardians.length;
+    s.guardiansAlerted = _guardians.length;
     await _smsAll('Winger ALERT: ${settings.name} may need help ($reason). '
         'Location: ${_mapLink(s.location)}.$_trackSuffix Please call her now.');
     cloud.beat(at: s.location, status: 'alerting', note: reason);
-    if (settings.guardians.isNotEmpty && !settings.homeMode) {
-      final g = settings.guardians.first;
+    if (_guardians.isNotEmpty && !settings.homeMode) {
+      final g = _guardians.first;
       final real = await alerts.call(g.phone);
       note('Calling ${g.name}${real ? '' : ' (simulated)'}');
     }
@@ -467,7 +533,7 @@ class AppState extends ChangeNotifier {
     final s = session;
     if (s == null) return;
     s.silentAlertSent = true;
-    s.guardiansAlerted = settings.guardians.length;
+    s.guardiansAlerted = _guardians.length;
     await _smsAll('Winger SILENT ALERT: ${settings.name} signalled she needs help '
         "($reason) but can't talk. Location: ${_mapLink(s.location)}. "
         'Do not call her; call 112 or go to her.$_trackSuffix');
@@ -554,7 +620,6 @@ class AppState extends ChangeNotifier {
     call = null;
     s.recording.endedAt = now();
     session = null;
-    _ticker?.cancel();
     await ear.stop();
     await voice.stop();
     note('Session ended: $reason');

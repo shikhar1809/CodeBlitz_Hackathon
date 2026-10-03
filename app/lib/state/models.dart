@@ -7,13 +7,16 @@ import '../core/threat_judge.dart';
 class Guardian {
   final String name;
   final String phone;
-  const Guardian(this.name, this.phone);
+
+  /// Who this contact is for: guardian (safety), family (medicines), buddy.
+  final String role;
+  const Guardian(this.name, this.phone, [this.role = 'guardian']);
 
   String get initial => name.isEmpty ? '?' : name[0].toUpperCase();
 
-  Map<String, dynamic> toJson() => {'name': name, 'phone': phone};
+  Map<String, dynamic> toJson() => {'name': name, 'phone': phone, 'role': role};
   factory Guardian.fromJson(Map<String, dynamic> j) =>
-      Guardian(j['name'] as String, j['phone'] as String);
+      Guardian(j['name'] as String, j['phone'] as String, j['role'] as String? ?? 'guardian');
 }
 
 class Settings {
@@ -29,6 +32,15 @@ class Settings {
   LatLon? home;
   bool onboarded = false;
 
+  /// Enabled presets; the first is the main one.
+  List<String> presets = [];
+
+  /// Prescription Agent: set up by a caregiver for someone else.
+  bool caregiver = false;
+  String? patientName;
+
+  List<Guardian> contacts(String role) => guardians.where((g) => g.role == role).toList();
+
   Map<String, dynamic> toJson() => {
         'name': name,
         'lang': lang,
@@ -41,6 +53,9 @@ class Settings {
         'companion': companionName,
         'home': home == null ? null : [home!.lat, home!.lon],
         'onboarded': onboarded,
+        'presets': presets,
+        'caregiver': caregiver,
+        'patient': patientName,
       };
 
   static Settings fromJson(Map<String, dynamic> j) {
@@ -57,7 +72,12 @@ class Settings {
       ..voiceCompanion = j['voice'] as bool? ?? true
       ..demoMode = j['demo'] as bool? ?? true
       ..companionName = j['companion'] as String? ?? 'Riya'
-      ..onboarded = j['onboarded'] as bool? ?? false;
+      ..onboarded = j['onboarded'] as bool? ?? false
+      ..caregiver = j['caregiver'] as bool? ?? false
+      ..patientName = j['patient'] as String?;
+    // Migration: set-ups from before presets were Women Companion.
+    final ps = j['presets'] as List?;
+    s.presets = ps == null ? (s.onboarded ? ['women'] : []) : ps.cast<String>();
     final h = j['home'] as List?;
     if (h != null) s.home = LatLon((h[0] as num).toDouble(), (h[1] as num).toDouble());
     return s;
