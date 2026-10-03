@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "web", "runtimeExecutable": "python", "runtimeArgs": ["-m", "http.server", "8080", "--directory", "app/build/web"], "port": 8080 }
+    { "name": "web", "runtimeExecutable": "python", "runtimeArgs": ["-m", "http.server", "8080", "--directory", "app/build/web"], "port": 8080 },
+    { "name": "site", "runtimeExecutable": "python", "runtimeArgs": ["-m", "http.server", "8081", "--directory", "public"], "port": 8081 }
   ]
 }
