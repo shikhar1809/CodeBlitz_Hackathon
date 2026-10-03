@@ -4,6 +4,7 @@ import '../../core/dev_flags.dart';
 import '../../core/l10n/l10n.dart';
 import '../../core/l10n/strings_alarm.dart';
 import '../../core/l10n/strings_caretaker.dart';
+import '../../core/l10n/strings_hub.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/voice/voice_prompt.dart';
@@ -19,6 +20,7 @@ import '../doses/reminder_sync.dart';
 import '../caregiver/family.dart';
 import '../doses/dose_log_store.dart';
 import '../health/found_card_banner.dart';
+import '../hub/open_hub.dart';
 import '../sync/sync_queue.dart';
 import '../doses/schedule_screen.dart';
 import '../medicines/medicine_store.dart';
@@ -31,7 +33,7 @@ import '../wizard/wizard_controller.dart';
 import '../wizard/wizard_screen.dart';
 import 'prescriptions_screen.dart';
 
-/// Where the patient lands: three things they can do, all visible at once.
+/// Where the patient lands: the things they can do, all visible at once.
 ///
 /// A menu, not today's doses (ADR-19). The first thing a new user needs is to
 /// add a prescription, and the first thing a returning user needs depends on
@@ -80,13 +82,19 @@ class PatientMenu extends StatelessWidget {
         subtitle: s.scanCaretakerQrWhy,
         onTap: () => openScanCaretaker(context),
       ),
+      _MenuTile(
+        icon: Icons.event_available_rounded,
+        title: s.bookVisit,
+        subtitle: s.bookVisitWhy,
+        onTap: () => openBookAppointment(context),
+      ),
     ];
 
     return VoicePrompt(
       text:
           '${s.menuQuestion} 1. ${s.newPrescription}. '
           '2. ${s.myPrescriptions}. 3. ${s.medicineSchedule}. '
-          '4. ${s.scanCaretakerQr}.',
+          '4. ${s.scanCaretakerQr}. 5. ${s.bookVisit}.',
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -112,7 +120,10 @@ class PatientMenu extends StatelessWidget {
                 final footer = demoTools ? _DemoLink.height : 0.0;
                 final rows = (tiles.length / 2).ceil();
                 final fits =
-                    (constraints.maxHeight - header - footer - 16 * (rows - 1)) /
+                    (constraints.maxHeight -
+                            header -
+                            footer -
+                            16 * (rows - 1)) /
                         rows >=
                     minTile;
                 final heading = Padding(
@@ -149,18 +160,18 @@ class PatientMenu extends StatelessWidget {
                     for (var r = 0; r < rows; r++) ...[
                       if (r > 0) const SizedBox(height: 16),
                       Expanded(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(child: tiles[r * 2]),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: r * 2 + 1 < tiles.length
-                                  ? tiles[r * 2 + 1]
-                                  : const SizedBox.shrink(),
-                            ),
-                          ],
-                        ),
+                        // An odd tile out takes the whole last row rather
+                        // than leaving a hole beside it.
+                        child: r * 2 + 1 < tiles.length
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(child: tiles[r * 2]),
+                                  const SizedBox(width: 16),
+                                  Expanded(child: tiles[r * 2 + 1]),
+                                ],
+                              )
+                            : tiles[r * 2],
                       ),
                     ],
                     if (demoTools) const _DemoLink(),

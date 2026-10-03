@@ -5,8 +5,10 @@ import '../storage/app_prefs.dart';
 import '../l10n/app_strings.dart';
 import '../l10n/l10n.dart';
 import '../l10n/strings_caretaker.dart';
+import '../l10n/strings_hub.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../../features/hub/open_hub.dart';
 import '../../features/pairing/patient_pairing.dart';
 
 /// Voice, language and account — the three controls on every home screen.
@@ -75,6 +77,10 @@ void _showAccount(BuildContext context, VoidCallback onRestart) {
               _caretakerLine(sheet, state, s),
               const SizedBox(height: 20),
             ],
+            Text(s.homeHub, style: Theme.of(sheet).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            _hubLine(context, sheet, state, s),
+            const SizedBox(height: 20),
             OutlinedButton.icon(
               icon: const Icon(Icons.swap_horiz_rounded),
               label: Text(s.changeRole),
@@ -126,6 +132,56 @@ Widget _caretakerLine(BuildContext sheet, AppState state, AppStrings s) {
         child: TextButton(
           onPressed: () => _confirmUnlink(sheet, state, s, linked),
           child: Text(s.unlink),
+        ),
+      ),
+    ],
+  );
+}
+
+/// The Home Hub this phone is paired with — or the way to pair one.
+Widget _hubLine(
+  BuildContext context,
+  BuildContext sheet,
+  AppState state,
+  AppStrings s,
+) {
+  final prefs = state.prefs;
+  if (!prefs.hasHub) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            s.hubNotConnected,
+            style: Theme.of(sheet).textTheme.bodyMedium,
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(sheet);
+            openHubConnect(context);
+          },
+          child: Text(s.hubConnect),
+        ),
+      ],
+    );
+  }
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Text(
+        prefs.hubName ?? s.homeHub,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+      ),
+      Text(prefs.hubUrl ?? '', style: Theme.of(sheet).textTheme.bodySmall),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton(
+          onPressed: () async {
+            // Local only, like the Home Hub screen's own Disconnect.
+            await prefs.clearHubLink();
+            if (sheet.mounted) Navigator.pop(sheet);
+          },
+          child: Text(s.hubDisconnect),
         ),
       ),
     ],

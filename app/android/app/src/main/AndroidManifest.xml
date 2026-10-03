@@ -24,10 +24,16 @@
          have to justify it (ADR-60). -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
 
+    <!-- usesCleartextTraffic: the Winger Hub is a spare computer at home,
+         reached at a LAN address like http://192.168.1.20:8787. A home
+         network has no certificate for that address, so the Hub speaks plain
+         HTTP and pairs with a one-time code and a bearer token instead.
+         Everything else the app calls is https. -->
     <application
         android:label="Winger"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

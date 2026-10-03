@@ -196,6 +196,42 @@ class AppPrefs {
     return backupPhone;
   }
 
+  // ── Winger Hub (the spare computer at home) ─────────────────────────────
+  // Where the Hub is on the home Wi-Fi, the bearer token it issued when this
+  // phone paired, this phone's id on the Hub, and the Hub's own name.
+  static const _hubUrl = 'hub_url';
+  static const _hubToken = 'hub_token';
+  static const _hubDeviceId = 'hub_device_id';
+  static const _hubName = 'hub_name';
+
+  /// e.g. `http://192.168.1.20:8787`, no trailing slash.
+  String? get hubUrl => _prefs.getString(_hubUrl);
+  String? get hubToken => _prefs.getString(_hubToken);
+  String? get hubDeviceId => _prefs.getString(_hubDeviceId);
+  String? get hubName => _prefs.getString(_hubName);
+
+  /// Linked only with both an address and a token: one without the other is
+  /// a half-finished pairing, and is treated as none.
+  bool get hasHub => hubUrl != null && hubToken != null;
+
+  Future<void> setHubLink({
+    required String url,
+    required String token,
+    required String deviceId,
+    required String name,
+  }) async {
+    await _prefs.setString(_hubUrl, url);
+    await _prefs.setString(_hubToken, token);
+    await _prefs.setString(_hubDeviceId, deviceId);
+    await _prefs.setString(_hubName, name);
+  }
+
+  Future<void> clearHubLink() async {
+    for (final key in const [_hubUrl, _hubToken, _hubDeviceId, _hubName]) {
+      await _prefs.remove(key);
+    }
+  }
+
   static const _identityKeys = [
     _role,
     _phone,
@@ -214,6 +250,12 @@ class AppPrefs {
     _caretakerLater,
     _linkedPatient,
     _linkedCaretaker,
+    // The Hub knows this phone by its owner's name, so a new owner pairs
+    // again.
+    _hubUrl,
+    _hubToken,
+    _hubDeviceId,
+    _hubName,
   ];
 
   /// Forget who this phone belongs to. Device choices stay.

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_state.dart';
 import '../../core/l10n/l10n.dart';
 import '../../core/l10n/strings_caretaker.dart';
+import '../../core/l10n/strings_hub.dart';
 import '../../core/plain_language.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
@@ -13,6 +14,7 @@ import '../../domain/schedule_engine.dart';
 import '../../domain/scheduled_medicine.dart';
 import '../../domain/sig.dart';
 import '../doses/dose_log_store.dart';
+import '../hub/open_hub.dart';
 import '../medicines/medicine_store.dart';
 import '../pairing/caretaker_pairing.dart';
 import '../pairing/open_pairing.dart';
@@ -233,6 +235,13 @@ class _CaregiverHomeState extends State<CaregiverHome> {
               icon: const Icon(Icons.ios_share_rounded),
               label: Text(s.sharePlan),
               onPressed: () => sharePlan(context, _meds),
+            ),
+            const SizedBox(height: 10),
+            // The caretaker books for the patient, through the Home Hub.
+            OutlinedButton.icon(
+              icon: const Icon(Icons.event_available_rounded),
+              label: Text(s.bookVisit),
+              onPressed: () => openBookAppointment(context),
             ),
             const SizedBox(height: 26),
             if (_notes.any((r) => r.notePriority != 'high')) ...[
