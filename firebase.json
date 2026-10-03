@@ -8,16 +8,55 @@
       "source": "backend/functions",
       "codebase": "default",
       "runtime": "nodejs20",
-      "ignore": ["node_modules", ".git", "*.log"]
+      "ignore": [
+        "node_modules",
+        ".git",
+        "*.log"
+      ]
     }
   ],
   "hosting": {
     "public": "app/build/web",
-    "ignore": ["firebase.json", "**/.*"],
+    "ignore": [
+      "firebase.json",
+      "**/.*"
+    ],
     "rewrites": [
-      { "source": "/api/**", "function": { "functionId": "api", "region": "asia-south1" } },
-      { "source": "/t/**", "destination": "/track.html" },
-      { "source": "**", "destination": "/index.html" }
+      {
+        "source": "/api/**",
+        "function": {
+          "functionId": "api",
+          "region": "asia-south1"
+        }
+      },
+      {
+        "source": "/t/**",
+        "destination": "/track.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|json|html)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
     ]
   }
 }
