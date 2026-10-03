@@ -840,6 +840,7 @@ class VisitWizardController extends ChangeNotifier {
           ? null
           : visit.caretakerNote.trim(),
       notePriority: visit.notePriority.name,
+      doctor: visit.doctorName,
     );
     await _queueOnlineRead();
     await repository.clear();

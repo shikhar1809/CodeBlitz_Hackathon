@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../domain/rx_history.dart';
 import '../../domain/scheduled_medicine.dart';
 
 /// The approved medicines and the visits they came from.
@@ -29,6 +30,11 @@ class MedicineStore {
       _readList(_records, PrescriptionRecord.fromJson)
         ..sort((a, b) => b.addedAt.compareTo(a.addedAt));
 
+  /// Every approved visit, as the history the merge consults: what was
+  /// prescribed before, at what strength, and what is on the schedule now.
+  RxHistory history({DateTime Function()? clock}) =>
+      RxHistory.fromRecords(records(), active: active(), clock: clock);
+
   /// Add an approved visit. A medicine already on the schedule under the same
   /// id is replaced: the newer prescription is the one being followed.
   Future<void> approve({
@@ -38,6 +44,7 @@ class MedicineStore {
     List<String> evidence = const [],
     String? caretakerNote,
     String notePriority = 'low',
+    String? doctor,
   }) async {
     final byId = {for (final m in medicines()) m.id: m};
     for (final m in approved) {
@@ -52,6 +59,8 @@ class MedicineStore {
           id: visitId,
           addedAt: at ?? DateTime.now(),
           medicineNames: [for (final m in approved) m.name],
+          medicines: [for (final m in approved) RecordedMedicine.of(m)],
+          doctor: doctor,
           evidence: evidence,
           caretakerNote: caretakerNote,
           notePriority: notePriority,

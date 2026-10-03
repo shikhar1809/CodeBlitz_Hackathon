@@ -68,12 +68,45 @@ class ScheduledMedicine {
       );
 }
 
+/// One medicine as it was approved on one visit: what the history of past
+/// prescriptions remembers. A snapshot, never edited afterwards — the
+/// schedule may change, the record of what was prescribed does not.
+class RecordedMedicine {
+  const RecordedMedicine({required this.name, this.strength, this.sig});
+
+  final String name;
+  final String? strength;
+
+  /// Null on records written before instructions were kept.
+  final Sig? sig;
+
+  factory RecordedMedicine.of(ScheduledMedicine m) =>
+      RecordedMedicine(name: m.name, strength: m.strength, sig: m.sig);
+
+  Map<String, Object?> toJson() => {
+    'name': name,
+    if (strength != null) 'strength': strength,
+    if (sig != null) 'sig': sig!.toJson(),
+  };
+
+  factory RecordedMedicine.fromJson(Map<String, Object?> j) =>
+      RecordedMedicine(
+        name: j['name']! as String,
+        strength: j['strength'] as String?,
+        sig: j['sig'] == null
+            ? null
+            : Sig.fromJson((j['sig']! as Map).cast<String, Object?>()),
+      );
+}
+
 /// One approved visit, as the "My prescriptions" list shows it.
 class PrescriptionRecord {
   const PrescriptionRecord({
     required this.id,
     required this.addedAt,
     required this.medicineNames,
+    this.medicines = const [],
+    this.doctor,
     this.evidence = const [],
     this.caretakerNote,
     this.notePriority = 'low',
@@ -83,6 +116,13 @@ class PrescriptionRecord {
   final String id;
   final DateTime addedAt;
   final List<String> medicineNames;
+
+  /// Name, strength and instruction of each approved medicine. Empty on
+  /// records from before this was kept; [medicineNames] still has the names.
+  final List<RecordedMedicine> medicines;
+
+  /// The doctor's name, when the visit recorded one.
+  final String? doctor;
 
   /// What the visit was built from: doctor, prescription, bill, chemist.
   final List<String> evidence;
@@ -99,6 +139,8 @@ class PrescriptionRecord {
     id: id,
     addedAt: addedAt,
     medicineNames: medicineNames,
+    medicines: medicines,
+    doctor: doctor,
     evidence: evidence,
     caretakerNote: caretakerNote,
     notePriority: notePriority,
@@ -109,6 +151,9 @@ class PrescriptionRecord {
     'id': id,
     'addedAt': addedAt.toIso8601String(),
     'medicineNames': medicineNames,
+    if (medicines.isNotEmpty)
+      'medicines': [for (final m in medicines) m.toJson()],
+    if (doctor != null) 'doctor': doctor,
     if (evidence.isNotEmpty) 'evidence': evidence,
     if (caretakerNote != null && caretakerNote!.isNotEmpty) ...{
       'caretakerNote': caretakerNote,
@@ -123,6 +168,11 @@ class PrescriptionRecord {
     id: j['id']! as String,
     addedAt: DateTime.parse(j['addedAt']! as String),
     medicineNames: [for (final n in j['medicineNames']! as List) n as String],
+    medicines: [
+      for (final m in j['medicines'] as List? ?? const [])
+        RecordedMedicine.fromJson((m as Map).cast<String, Object?>()),
+    ],
+    doctor: j['doctor'] as String?,
     evidence: [for (final e in j['evidence'] as List? ?? const []) e as String],
     caretakerNote: j['caretakerNote'] as String?,
     notePriority: j['notePriority'] as String? ?? 'low',
