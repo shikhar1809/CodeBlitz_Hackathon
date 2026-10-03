@@ -1,0 +1,11 @@
+{
+  "about": "Curated by the Winger team (source: curated). Brand pairs in this catalogue whose names look or sound alike but contain different medicines. When a reading is matched to either name by approximation, or comes from handwriting or speech, the card is always amber and names both. Not an official list; add a pair only when both brands are in medicines.json and their salts differ.",
+  "pairs": [
+    {"a": "ROSUVAS", "b": "STORVAS", "why": "Differ by two letters: rosuvastatin and atorvastatin are different statins at different doses."},
+    {"a": "DOLO", "b": "DOLONEX", "why": "Same opening sound: paracetamol and piroxicam (a painkiller of a different kind)."},
+    {"a": "NEXITO", "b": "NEXIUM", "why": "Same opening letters: escitalopram (for mood) and esomeprazole (for acidity)."},
+    {"a": "LOSAR", "b": "LASIX", "why": "Same shape when handwritten: losartan (blood pressure) and furosemide (water tablet)."},
+    {"a": "CARDACE", "b": "CARDIVAS", "why": "Same opening sound: ramipril and carvedilol, two different heart medicines."},
+    {"a": "ATEN", "b": "ATORVA", "why": "Same opening letters: atenolol (blood pressure) and atorvastatin (cholesterol)."}
+  ]
+}

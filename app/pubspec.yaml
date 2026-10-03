@@ -40,6 +40,8 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/catalog/medicines.json      # see assets/catalog/SOURCES.md
+    - assets/catalog/lookalikes.json
 
   fonts:
     - family: NotoSans
